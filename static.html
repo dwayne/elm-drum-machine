@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Drum Machine</title>
+
+    <link rel="stylesheet" href="assets/styles.css">
+  </head>
+  <body>
+    <!-- The drum machine -->
+    <div class="drum-machine">
+      <div class="flex">
+        <div class="mr-40">
+          <!-- The drum pads -->
+          <div class="drum-pads">
+            <div class="drum-pads__container">
+              <div class="drum-pad r1 c1">Q</div>
+              <div class="drum-pad r1 c2">W</div>
+              <div class="drum-pad r1 c3">E</div>
+              <div class="drum-pad r2 c1">A</div>
+              <div class="drum-pad r2 c2">S</div>
+              <div class="drum-pad r2 c3">D</div>
+              <div class="drum-pad r3 c1">Z</div>
+              <div class="drum-pad r3 c2">X</div>
+              <div class="drum-pad r3 c3">C</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The controls -->
+        <div class="controls">
+          <!-- The power switch -->
+          <div class="switch is-on">
+            <div class="switch__container">
+              <h3 class="switch__title">Power</h3>
+              <div class="switch__button-container">
+                <div class="switch__button"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- The display -->
+          <div class="display">
+            Heater 1
+          </div>
+
+          <!-- The volume slider -->
+          <div class="slider">
+            <input type="range" min="0" max="100" step="1" value="30">
+          </div>
+
+          <!-- The bank switch -->
+          <div class="switch is-off">
+            <div class="switch__container">
+              <h3 class="switch__title">Bank</h3>
+              <div class="switch__button-container">
+                <div class="switch__button"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
