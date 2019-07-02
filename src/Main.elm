@@ -1,13 +1,9 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 
 import Browser
-import Browser.Events exposing (onKeyDown)
-import Html exposing (Html, audio, button, div, h3, input, label, text)
-import Html.Attributes as A
-import Html.Events as E
-import Json.Encode as Encode
-import Json.Decode as Decode
+import Html exposing (Html, div, h3, input, text)
+import Html.Attributes as A exposing (class)
 
 
 main : Program () Model Msg
@@ -16,7 +12,7 @@ main =
     { init = init
     , view = view
     , update = update
-    , subscriptions = subscriptions
+    , subscriptions = always Sub.none
     }
 
 
@@ -26,8 +22,8 @@ main =
 type alias Model =
   { power : Bool
   , bank : Bool
-  , volume : Int
   , display : String
+  , volume : Int
   }
 
 
@@ -43,9 +39,9 @@ init : () -> (Model, Cmd msg)
 init =
   always
     ( { power = True
-      , bank = True
-      , volume = 30
+      , bank = False
       , display = ""
+      , volume = 30
       }
     , Cmd.none
     )
@@ -54,196 +50,109 @@ init =
 -- UPDATE
 
 
-type Msg
-  = Clicked DrumPad
-  | KeyPressed String
-  | ChangedPower
-  | ChangedBank
-  | ChangedVolume String
+type alias Msg = Never
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  case msg of
-    Clicked { id } ->
-      ( model
-      , play (encodeSettings id model.volume)
-      )
-
-    KeyPressed key ->
-      Debug.log key <|
-        case String.uncons key of
-          Just (c, "") ->
-            case find (Char.toUpper c) .keyTrigger (toKit model.bank) of
-              Just { id } ->
-                ( model
-                , if model.power then
-                    play (encodeSettings id model.volume)
-                  else
-                    Cmd.none
-                )
-
-              Nothing ->
-                ( model
-                , Cmd.none
-                )
-
-          Just _ ->
-            ( model
-            , Cmd.none
-            )
-
-          Nothing ->
-            ( model
-            , Cmd.none
-            )
-
-    ChangedPower ->
-      ( { model | power = not model.power }
-      , Cmd.none
-      )
-
-    ChangedBank ->
-      ( { model | bank = not model.bank }
-      , Cmd.none
-      )
-
-    ChangedVolume newVolumeAsString ->
-      ( case String.toInt newVolumeAsString of
-          Just newVolume ->
-            { model | volume = newVolume }
-
-          Nothing ->
-            model
-      , Cmd.none
-      )
-
-
-encodeSettings : String -> Int -> Encode.Value
-encodeSettings id volume =
-  Encode.object
-    [ ("id", Encode.string id)
-    , ("volume", Encode.float (toFloat volume / 100))
-    ]
-
-
--- COMMANDS
-
-
-port play : Encode.Value -> Cmd msg
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-  onKeyDown (Decode.map KeyPressed (Decode.field "key" Decode.string))
+  ( model
+  , Cmd.none
+  )
 
 
 -- VIEW
 
 
-view : Model -> Html Msg
-view { power, bank, volume, display } =
-  div []
-    [ viewKit power (toKit bank)
-    , viewSwitch "Power" "power" power ChangedPower
-    , viewDisplay display
-    , viewVolume volume
-    , viewSwitch "Bank" "bank" bank ChangedBank
+view : Model -> Html msg
+view { power, bank, display, volume } =
+  div [ class "drum-machine" ]
+    [ div [ class "flex" ]
+        [ div [ class "mr-40" ] [ viewDrumPads (selectKit bank) ]
+        , div [ class "controls" ]
+            [ viewSwitch "Power" power
+            , viewDisplay display
+            , viewVolume volume
+            , viewSwitch "Bank" bank
+            ]
+        ]
     ]
 
 
-viewKit : Bool -> List DrumPad -> Html Msg
-viewKit isEnabled kit =
-  div [] (List.map (viewDrumPad isEnabled) kit)
+viewDrumPads : List DrumPad -> Html msg
+viewDrumPads drumPads =
+  div [ class "drum-pads" ]
+    [ div [ class "drum-pads__container" ]
+        (List.indexedMap viewDrumPad drumPads)
+    ]
 
 
-viewDrumPad : Bool -> DrumPad -> Html Msg
-viewDrumPad isEnabled pad =
+viewDrumPad : Int -> DrumPad -> Html msg
+viewDrumPad index drumPad =
   let
-    src =
-      "assets/audio/" ++ pad.id ++ ".mp3"
+    (row, col) =
+      toPosition index
+
+    rowClass =
+      "r" ++ (String.fromInt row)
+
+    colClass =
+      "c" ++ (String.fromInt col)
   in
-    div [ A.title pad.name ]
-      [ audio [ A.id pad.id, A.src src ] []
-      , button
-          [ A.disabled (not isEnabled)
-          , E.onClick (Clicked pad)
+    div [ class ("drum-pad " ++ rowClass ++ " " ++ colClass) ]
+      [ text (String.fromChar drumPad.keyTrigger) ]
+
+
+viewSwitch : String -> Bool -> Html msg
+viewSwitch title isOn =
+  let
+    stateClass =
+      if isOn then
+        "is-on"
+      else
+        "is-off"
+  in
+    div [ class ("switch " ++ stateClass) ]
+      [ div [ class "switch__container" ]
+          [ h3 [ class "switch__title" ] [ text title ]
+          , div [ class "switch__button-container" ]
+              [ div [ class "switch__button" ] [] ]
           ]
-          [ text (String.fromChar pad.keyTrigger) ]
       ]
 
 
 viewDisplay : String -> Html msg
 viewDisplay value =
-  div [] [ text value ]
+  div [ class "display" ] [ text value ]
 
 
-viewVolume : Int -> Html Msg
+viewVolume : Int -> Html msg
 viewVolume level =
-  div []
+  div [ class "slider" ]
     [ input
-        [ A.type_ "range"
+        [ A.max "100"
         , A.min "0"
-        , A.max "100"
+        , A.step "1"
+        , A.type_ "range"
         , A.value (String.fromInt level)
-        , E.onInput ChangedVolume
         ]
         []
-    ]
-
-
-viewSwitch : String -> String -> Bool -> msg -> Html msg
-viewSwitch title name value tag =
-  div [ A.class "switch" ]
-    [ h3 [] [ text title ]
-    , label []
-        [ input
-            [ A.type_ "radio"
-            , A.name name
-            , A.checked (value == False)
-            , E.onCheck (always tag)
-            ]
-            []
-        , text "Off"
-        ]
-    , label []
-        [ input
-            [ A.type_ "radio"
-            , A.name name
-            , A.checked (value == True)
-            , E.onCheck (always tag)
-            ]
-            []
-        , text "On"
-        ]
     ]
 
 
 -- HELPERS
 
 
-toKit : Bool -> List DrumPad
-toKit bank =
-  if bank then
-    heaterKit
-  else
+selectKit : Bool -> List DrumPad
+selectKit isSmoothPiano =
+  if isSmoothPiano then
     smoothPianoKit
+  else
+    heaterKit
 
 
-find : b -> (a -> b) -> List a -> Maybe a
-find key select values =
-  case values of
-    [] ->
-      Nothing
-
-    (v::vs) ->
-      if key == select v then
-        Just v
-      else
-        find key select vs
+toPosition : Int -> (Int, Int)
+toPosition index =
+  (index // 3 + 1, modBy 3 index + 1)
 
 
 -- DATA
