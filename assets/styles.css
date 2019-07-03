@@ -103,7 +103,8 @@ body {
 
 /* States */
 
-.drum-pad:active {
+.drum-pad:active,
+.drum-pad.is-active {
   transform: translate(3px, 3px);
 
   background-color: orange;

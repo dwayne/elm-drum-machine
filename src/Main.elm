@@ -2,10 +2,12 @@ port module Main exposing (main)
 
 
 import Browser
+import Browser.Events
 import Html exposing (Html, audio, div, h3, input, text)
 import Html.Attributes as A exposing (class)
 import Html.Events as E
 import Json.Encode as Encode
+import Json.Decode as Decode
 
 
 main : Program () Model Msg
@@ -14,7 +16,7 @@ main =
     { init = init
     , view = view
     , update = update
-    , subscriptions = always Sub.none
+    , subscriptions = subscriptions
     }
 
 
@@ -26,6 +28,7 @@ type alias Model =
   , bank : Bool
   , display : String
   , volume : Int
+  , activeKey : Maybe Char
   }
 
 
@@ -44,6 +47,7 @@ init =
       , bank = False
       , display = ""
       , volume = 30
+      , activeKey = Nothing
       }
     , Cmd.none
     )
@@ -54,6 +58,8 @@ init =
 
 type Msg
   = Clicked DrumPad
+  | KeyDown Char
+  | KeyUp Char
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -63,6 +69,23 @@ update msg model =
       ( { model | display = name }
       , play id model.volume
       )
+
+    KeyDown key ->
+      ( { model | activeKey = Just key }
+      , Cmd.none
+      )
+
+    KeyUp key ->
+      case findDrumPad key (selectKit model.bank) of
+        Just { name, id } ->
+          ( { model | display = name, activeKey = Nothing }
+          , play id model.volume
+          )
+
+        Nothing ->
+          ( model
+          , Cmd.none
+          )
 
 
 play : String -> Int -> Cmd msg
@@ -83,14 +106,42 @@ play id volume =
 port playAudio : Encode.Value -> Cmd msg
 
 
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+  Sub.batch
+    [ Browser.Events.onKeyDown (Decode.map KeyDown keyDecoder)
+    , Browser.Events.onKeyUp (Decode.map KeyUp keyDecoder)
+    ]
+
+
+-- DECODERS
+
+
+keyDecoder : Decode.Decoder Char
+keyDecoder =
+  Decode.field "key" Decode.string
+    |> Decode.andThen
+      (\key ->
+        case String.uncons key of
+          Just (c, "") ->
+            Decode.succeed (Char.toUpper c)
+
+          _ ->
+            Decode.fail ("Ignored: " ++ key)
+      )
+
+
 -- VIEW
 
 
 view : Model -> Html Msg
-view { power, bank, display, volume } =
+view { power, bank, display, volume, activeKey } =
   div [ class "drum-machine" ]
     [ div [ class "flex" ]
-        [ div [ class "mr-40" ] [ viewDrumPads (selectKit bank) ]
+        [ div [ class "mr-40" ] [ viewDrumPads activeKey (selectKit bank) ]
         , div [ class "controls" ]
             [ viewSwitch "Power" power
             , viewDisplay display
@@ -101,16 +152,16 @@ view { power, bank, display, volume } =
     ]
 
 
-viewDrumPads : List DrumPad -> Html Msg
-viewDrumPads drumPads =
+viewDrumPads : Maybe Char -> List DrumPad -> Html Msg
+viewDrumPads activeKey drumPads =
   div [ class "drum-pads" ]
     [ div [ class "drum-pads__container" ]
-        (List.indexedMap viewDrumPad drumPads)
+        (List.indexedMap (viewDrumPad activeKey) drumPads)
     ]
 
 
-viewDrumPad : Int -> DrumPad -> Html Msg
-viewDrumPad index drumPad =
+viewDrumPad : Maybe Char -> Int -> DrumPad -> Html Msg
+viewDrumPad activeKey index drumPad =
   let
     (row, col) =
       toPosition index
@@ -129,6 +180,7 @@ viewDrumPad index drumPad =
           [ ("drum-pad", True)
           , (rowClass, True)
           , (colClass, True)
+          , ("is-active", activeKey == Just drumPad.keyTrigger)
           ]
       , E.onClick (Clicked drumPad)
       ]
@@ -184,6 +236,19 @@ viewVolume level =
 
 nonBreakingSpace : Char
 nonBreakingSpace = '\u{00A0}'
+
+
+findDrumPad : Char -> List DrumPad -> Maybe DrumPad
+findDrumPad key drumPads =
+  case drumPads of
+    [] ->
+      Nothing
+
+    (drumPad::rest) ->
+      if key == drumPad.keyTrigger then
+        Just drumPad
+      else
+        findDrumPad key rest
 
 
 selectKit : Bool -> List DrumPad
