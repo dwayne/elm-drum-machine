@@ -3,7 +3,7 @@ port module Main exposing (main)
 
 import Browser
 import Browser.Events
-import Html exposing (Html, audio, div, h3, input, text)
+import Html exposing (Html, audio, button, div, h3, input, text)
 import Html.Attributes as A exposing (class)
 import Html.Events as E
 import Json.Encode as Encode
@@ -60,6 +60,8 @@ type Msg
   = Clicked DrumPad
   | KeyDown Char
   | KeyUp Char
+  | ToggledPower
+  | ToggledBank
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -87,6 +89,20 @@ update msg model =
           , Cmd.none
           )
 
+    ToggledPower ->
+      ( { model | power = not model.power, display = "" }
+      , Cmd.none
+      )
+
+    ToggledBank ->
+      let
+        newBank =
+          not model.bank
+      in
+        ( { model | bank = newBank, display = kitName newBank }
+        , Cmd.none
+        )
+
 
 play : String -> Int -> Cmd msg
 play id volume =
@@ -110,11 +126,14 @@ port playAudio : Encode.Value -> Cmd msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-  Sub.batch
-    [ Browser.Events.onKeyDown (Decode.map KeyDown keyDecoder)
-    , Browser.Events.onKeyUp (Decode.map KeyUp keyDecoder)
-    ]
+subscriptions { power } =
+  if power then
+    Sub.batch
+      [ Browser.Events.onKeyDown (Decode.map KeyDown keyDecoder)
+      , Browser.Events.onKeyUp (Decode.map KeyUp keyDecoder)
+      ]
+  else
+    Sub.none
 
 
 -- DECODERS
@@ -141,27 +160,28 @@ view : Model -> Html Msg
 view { power, bank, display, volume, activeKey } =
   div [ class "drum-machine" ]
     [ div [ class "flex" ]
-        [ div [ class "mr-40" ] [ viewDrumPads activeKey (selectKit bank) ]
+        [ div [ class "mr-40" ]
+            [ viewDrumPads power activeKey (selectKit bank) ]
         , div [ class "controls" ]
-            [ viewSwitch "Power" power
+            [ viewSwitch True "Power" power ToggledPower
             , viewDisplay display
-            , viewVolume volume
-            , viewSwitch "Bank" bank
+            , viewVolume power volume
+            , viewSwitch power "Bank" bank ToggledBank
             ]
         ]
     ]
 
 
-viewDrumPads : Maybe Char -> List DrumPad -> Html Msg
-viewDrumPads activeKey drumPads =
+viewDrumPads : Bool -> Maybe Char -> List DrumPad -> Html Msg
+viewDrumPads isEnabled activeKey drumPads =
   div [ class "drum-pads" ]
     [ div [ class "drum-pads__container" ]
-        (List.indexedMap (viewDrumPad activeKey) drumPads)
+        (List.indexedMap (viewDrumPad isEnabled activeKey) drumPads)
     ]
 
 
-viewDrumPad : Maybe Char -> Int -> DrumPad -> Html Msg
-viewDrumPad activeKey index drumPad =
+viewDrumPad : Bool -> Maybe Char -> Int -> DrumPad -> Html Msg
+viewDrumPad isEnabled activeKey index drumPad =
   let
     (row, col) =
       toPosition index
@@ -176,29 +196,41 @@ viewDrumPad activeKey index drumPad =
       "assets/audio/" ++ drumPad.id ++ ".mp3"
   in
     div
-      [ A.classList
-          [ ("drum-pad", True)
-          , (rowClass, True)
-          , (colClass, True)
-          , ("is-active", activeKey == Just drumPad.keyTrigger)
-          ]
-      , E.onClick (Clicked drumPad)
+      [ class "drum-pad"
+      , class rowClass
+      , class colClass
       ]
       [ audio [ A.id drumPad.id, A.src src ] []
-      , text (String.fromChar drumPad.keyTrigger)
+      , button
+          [ class "drum-pad__button"
+          , A.classList [ ("is-active", activeKey == Just drumPad.keyTrigger) ]
+          , A.disabled (not isEnabled)
+          , E.onClick (Clicked drumPad)
+          ]
+          [ text (String.fromChar drumPad.keyTrigger)
+          ]
       ]
 
 
-viewSwitch : String -> Bool -> Html msg
-viewSwitch title isOn =
+viewSwitch : Bool -> String -> Bool -> msg -> Html msg
+viewSwitch isEnabled title isOn msg =
   let
     stateClass =
       if isOn then
         "is-on"
       else
         "is-off"
+
+    defaultAttrs =
+      [ class ("switch " ++ stateClass) ]
+
+    attrs =
+      if isEnabled then
+        List.append defaultAttrs [ E.onClick msg ]
+      else
+        defaultAttrs
   in
-    div [ class ("switch " ++ stateClass) ]
+    div attrs
       [ div [ class "switch__container" ]
           [ h3 [ class "switch__title" ] [ text title ]
           , div [ class "switch__button-container" ]
@@ -217,8 +249,8 @@ viewDisplay value =
     ]
 
 
-viewVolume : Int -> Html msg
-viewVolume level =
+viewVolume : Bool -> Int -> Html msg
+viewVolume isEnabled level =
   div [ class "slider" ]
     [ input
         [ A.max "100"
@@ -226,6 +258,7 @@ viewVolume level =
         , A.step "1"
         , A.type_ "range"
         , A.value (String.fromInt level)
+        , A.disabled (not isEnabled)
         ]
         []
     ]
@@ -257,6 +290,14 @@ selectKit isSmoothPiano =
     smoothPianoKit
   else
     heaterKit
+
+
+kitName : Bool -> String
+kitName isSmoothPiano =
+  if isSmoothPiano then
+    "Smooth Piano Kit"
+  else
+    "Heater Kit"
 
 
 toPosition : Int -> (Int, Int)
