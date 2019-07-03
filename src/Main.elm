@@ -1,9 +1,11 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 
 import Browser
-import Html exposing (Html, div, h3, input, text)
+import Html exposing (Html, audio, div, h3, input, text)
 import Html.Attributes as A exposing (class)
+import Html.Events as E
+import Json.Encode as Encode
 
 
 main : Program () Model Msg
@@ -50,20 +52,41 @@ init =
 -- UPDATE
 
 
-type alias Msg = Never
+type Msg
+  = Clicked DrumPad
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  ( model
-  , Cmd.none
-  )
+  case msg of
+    Clicked { name, id } ->
+      ( { model | display = name }
+      , play id model.volume
+      )
+
+
+play : String -> Int -> Cmd msg
+play id volume =
+  let
+    args =
+      Encode.object
+        [ ("id", Encode.string id)
+        , ("volume", Encode.float (toFloat volume / 100))
+        ]
+  in
+    playAudio args
+
+
+-- COMMANDS
+
+
+port playAudio : Encode.Value -> Cmd msg
 
 
 -- VIEW
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view { power, bank, display, volume } =
   div [ class "drum-machine" ]
     [ div [ class "flex" ]
@@ -78,7 +101,7 @@ view { power, bank, display, volume } =
     ]
 
 
-viewDrumPads : List DrumPad -> Html msg
+viewDrumPads : List DrumPad -> Html Msg
 viewDrumPads drumPads =
   div [ class "drum-pads" ]
     [ div [ class "drum-pads__container" ]
@@ -86,7 +109,7 @@ viewDrumPads drumPads =
     ]
 
 
-viewDrumPad : Int -> DrumPad -> Html msg
+viewDrumPad : Int -> DrumPad -> Html Msg
 viewDrumPad index drumPad =
   let
     (row, col) =
@@ -97,9 +120,21 @@ viewDrumPad index drumPad =
 
     colClass =
       "c" ++ (String.fromInt col)
+
+    src =
+      "assets/audio/" ++ drumPad.id ++ ".mp3"
   in
-    div [ class ("drum-pad " ++ rowClass ++ " " ++ colClass) ]
-      [ text (String.fromChar drumPad.keyTrigger) ]
+    div
+      [ A.classList
+          [ ("drum-pad", True)
+          , (rowClass, True)
+          , (colClass, True)
+          ]
+      , E.onClick (Clicked drumPad)
+      ]
+      [ audio [ A.id drumPad.id, A.src src ] []
+      , text (String.fromChar drumPad.keyTrigger)
+      ]
 
 
 viewSwitch : String -> Bool -> Html msg
@@ -122,7 +157,12 @@ viewSwitch title isOn =
 
 viewDisplay : String -> Html msg
 viewDisplay value =
-  div [ class "display" ] [ text value ]
+  div [ class "display" ]
+    [ if String.isEmpty value then
+        text (String.fromChar nonBreakingSpace)
+      else
+        text value
+    ]
 
 
 viewVolume : Int -> Html msg
@@ -140,6 +180,10 @@ viewVolume level =
 
 
 -- HELPERS
+
+
+nonBreakingSpace : Char
+nonBreakingSpace = '\u{00A0}'
 
 
 selectKit : Bool -> List DrumPad

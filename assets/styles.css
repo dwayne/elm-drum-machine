@@ -22,6 +22,9 @@ body {
 
   font-family: 'Russo One';
 
+  -moz-user-select: none;
+       user-select: none;
+
   background-color: #8d8d8d;
 }
 
@@ -100,12 +103,11 @@ body {
 
 /* States */
 
-.drum-pad.is-active {
-  margin-top: 3px;
-  height: 77px;
+.drum-pad:active {
+  transform: translate(3px, 3px);
 
   background-color: orange;
-  box-shadow: orange 0px 3px;
+  box-shadow: none;
 }
 
 /** Controls **/

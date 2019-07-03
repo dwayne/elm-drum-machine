@@ -12,8 +12,16 @@
     <div id="app"></div>
     <script src="app.js"></script>
     <script>
-      Elm.Main.init({
+      const app = Elm.Main.init({
         node: document.getElementById("app")
+      });
+
+      app.ports.playAudio.subscribe(function (args) {
+        const audio = document.getElementById(args.id)
+
+        audio.volume = args.volume;
+        audio.currentTime = 0;
+        audio.play();
       });
     </script>
   </body>
