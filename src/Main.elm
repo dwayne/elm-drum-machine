@@ -8,6 +8,8 @@ import Html.Attributes as A exposing (class)
 import Html.Events as E
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Process
+import Task
 
 
 main : Program () Model Msg
@@ -62,6 +64,8 @@ type Msg
   | KeyUp Char
   | ToggledPower
   | ToggledBank
+  | ChangedVolume String
+  | VolumeAlarm Int
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -103,6 +107,33 @@ update msg model =
         , Cmd.none
         )
 
+    ChangedVolume newVolumeAsString ->
+      case String.toInt newVolumeAsString of
+        Just newVolume ->
+          ( { model
+            | volume = newVolume
+            , display = "Volume " ++ newVolumeAsString
+            }
+          , alarm 500 (VolumeAlarm newVolume)
+          )
+
+        Nothing ->
+          ( model
+          , Cmd.none
+          )
+
+    VolumeAlarm volume ->
+      ( let
+          clearDisplay =
+            volume == model.volume && String.startsWith "Volume" model.display
+        in
+          if clearDisplay then
+            { model | display = "" }
+          else
+            model
+      , Cmd.none
+      )
+
 
 play : String -> Int -> Cmd msg
 play id volume =
@@ -120,6 +151,12 @@ play id volume =
 
 
 port playAudio : Encode.Value -> Cmd msg
+
+
+alarm : Float -> msg -> Cmd msg
+alarm time msg =
+  Process.sleep time
+    |> Task.perform (always msg)
 
 
 -- SUBSCRIPTIONS
@@ -249,7 +286,7 @@ viewDisplay value =
     ]
 
 
-viewVolume : Bool -> Int -> Html msg
+viewVolume : Bool -> Int -> Html Msg
 viewVolume isEnabled level =
   div [ class "slider" ]
     [ input
@@ -259,6 +296,7 @@ viewVolume isEnabled level =
         , A.type_ "range"
         , A.value (String.fromInt level)
         , A.disabled (not isEnabled)
+        , E.onInput ChangedVolume
         ]
         []
     ]
