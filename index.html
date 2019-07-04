@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Drum Machine</title>
+
+    <link rel="stylesheet" href="assets/styles.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="app.js"></script>
+    <script>
+      const app = Elm.Main.init({
+        node: document.getElementById("app")
+      });
+
+      app.ports.playAudio.subscribe(function (args) {
+        const audio = document.getElementById(args.id)
+
+        audio.volume = args.volume;
+        audio.currentTime = 0;
+        audio.play();
+      });
+    </script>
+  </body>
+</html>
