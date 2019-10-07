@@ -19,7 +19,7 @@ and how to play a specific audio file when a button is clicked.
 of enabling audio playback with the
 [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement).
 3. I figured out how to write a
-[custom decoder](https://github.com/elm-school/drum-machine/blob/982f76215f129e1cb80326f3191d92e18bd6c893/src/Main.elm#L179)
+[custom decoder](https://github.com/dwayne/elm-drum-machine/blob/982f76215f129e1cb80326f3191d92e18bd6c893/src/Main.elm#L179)
 for key up and down events so that the keyboard could be used to control the
 drum pads.
 4. When the volume is changed the display is updated to show the current volume
@@ -31,7 +31,7 @@ in Elm. This led me to discover
 5. An empty display causes the display rectangle's height to collapse such that
 when text is shown it makes the rectangle's height adjust abruptly. To fix this
 problem I needed to
-[make Elm output a non-breaking space](https://github.com/elm-school/drum-machine/blob/982f76215f129e1cb80326f3191d92e18bd6c893/src/Main.elm#L283).
+[make Elm output a non-breaking space](https://github.com/dwayne/elm-drum-machine/blob/982f76215f129e1cb80326f3191d92e18bd6c893/src/Main.elm#L283).
 6. This is not Elm specific but I learned that setting
 [currentTime](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/currentTime)
 to `0` made the audio playback smoother when I was rapidly clicking the drum
@@ -40,4 +40,4 @@ pads.
 
 ## That's all folks!
 
-Check out the [demo](https://elm-school.github.io/drum-machine/).
+Check out the [demo](https://dwayne.github.io/elm-drum-machine/).
