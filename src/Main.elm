@@ -2,12 +2,12 @@ port module Main exposing (main)
 
 
 import Browser
-import Browser.Events
-import Html exposing (Html, audio, button, div, h3, input, text)
-import Html.Attributes as A exposing (class)
-import Html.Events as E
-import Json.Encode as Encode
-import Json.Decode as Decode
+import Browser.Events as BE
+import Html as H
+import Html.Attributes as HA
+import Html.Events as HE
+import Json.Encode as JE
+import Json.Decode as JD
 import Process
 import Task
 
@@ -139,9 +139,9 @@ play : String -> Int -> Cmd msg
 play id volume =
   let
     args =
-      Encode.object
-        [ ("id", Encode.string id)
-        , ("volume", Encode.float (toFloat volume / 100))
+      JE.object
+        [ ("id", JE.string id)
+        , ("volume", JE.float (toFloat volume / 100))
         ]
   in
     playAudio args
@@ -150,7 +150,7 @@ play id volume =
 -- COMMANDS
 
 
-port playAudio : Encode.Value -> Cmd msg
+port playAudio : JE.Value -> Cmd msg
 
 
 alarm : Float -> msg -> Cmd msg
@@ -166,8 +166,8 @@ subscriptions : Model -> Sub Msg
 subscriptions { power } =
   if power then
     Sub.batch
-      [ Browser.Events.onKeyDown (Decode.map KeyDown keyDecoder)
-      , Browser.Events.onKeyUp (Decode.map KeyUp keyDecoder)
+      [ BE.onKeyDown (JD.map KeyDown keyDecoder)
+      , BE.onKeyUp (JD.map KeyUp keyDecoder)
       ]
   else
     Sub.none
@@ -176,30 +176,30 @@ subscriptions { power } =
 -- DECODERS
 
 
-keyDecoder : Decode.Decoder Char
+keyDecoder : JD.Decoder Char
 keyDecoder =
-  Decode.field "key" Decode.string
-    |> Decode.andThen
+  JD.field "key" JD.string
+    |> JD.andThen
       (\key ->
         case String.uncons key of
           Just (c, "") ->
-            Decode.succeed (Char.toUpper c)
+            JD.succeed (Char.toUpper c)
 
           _ ->
-            Decode.fail ("Ignored: " ++ key)
+            JD.fail ("Ignored: " ++ key)
       )
 
 
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> H.Html Msg
 view { power, bank, display, volume, activeKey } =
-  div [ class "drum-machine" ]
-    [ div [ class "flex" ]
-        [ div [ class "mr-40" ]
+  H.div [ HA.class "drum-machine" ]
+    [ H.div [ HA.class "flex" ]
+        [ H.div [ HA.class "mr-40" ]
             [ viewDrumPads power activeKey (selectKit bank) ]
-        , div [ class "controls" ]
+        , H.div [ HA.class "controls" ]
             [ viewSwitch True "Power" power ToggledPower
             , viewDisplay display
             , viewVolume power volume
@@ -209,15 +209,15 @@ view { power, bank, display, volume, activeKey } =
     ]
 
 
-viewDrumPads : Bool -> Maybe Char -> List DrumPad -> Html Msg
+viewDrumPads : Bool -> Maybe Char -> List DrumPad -> H.Html Msg
 viewDrumPads isEnabled activeKey drumPads =
-  div [ class "drum-pads" ]
-    [ div [ class "drum-pads__container" ]
+  H.div [ HA.class "drum-pads" ]
+    [ H.div [ HA.class "drum-pads__container" ]
         (List.indexedMap (viewDrumPad isEnabled activeKey) drumPads)
     ]
 
 
-viewDrumPad : Bool -> Maybe Char -> Int -> DrumPad -> Html Msg
+viewDrumPad : Bool -> Maybe Char -> Int -> DrumPad -> H.Html Msg
 viewDrumPad isEnabled activeKey index drumPad =
   let
     (row, col) =
@@ -234,24 +234,24 @@ viewDrumPad isEnabled activeKey index drumPad =
       -- absolute path to the audio file.
       "audio/" ++ drumPad.id ++ ".mp3"
   in
-    div
-      [ class "drum-pad"
-      , class rowClass
-      , class colClass
+    H.div
+      [ HA.class "drum-pad"
+      , HA.class rowClass
+      , HA.class colClass
       ]
-      [ audio [ A.id drumPad.id, A.src src ] []
-      , button
-          [ class "drum-pad__button"
-          , A.classList [ ("is-active", activeKey == Just drumPad.keyTrigger) ]
-          , A.disabled (not isEnabled)
-          , E.onClick (Clicked drumPad)
+      [ H.audio [ HA.id drumPad.id, HA.src src ] []
+      , H.button
+          [ HA.class "drum-pad__button"
+          , HA.classList [ ("is-active", activeKey == Just drumPad.keyTrigger) ]
+          , HA.disabled (not isEnabled)
+          , HE.onClick (Clicked drumPad)
           ]
-          [ text (String.fromChar drumPad.keyTrigger)
+          [ H.text (String.fromChar drumPad.keyTrigger)
           ]
       ]
 
 
-viewSwitch : Bool -> String -> Bool -> msg -> Html msg
+viewSwitch : Bool -> String -> Bool -> msg -> H.Html msg
 viewSwitch isEnabled title isOn msg =
   let
     stateClass =
@@ -261,44 +261,44 @@ viewSwitch isEnabled title isOn msg =
         "is-off"
 
     defaultAttrs =
-      [ class ("switch " ++ stateClass) ]
+      [ HA.class ("switch " ++ stateClass) ]
 
     attrs =
       if isEnabled then
-        List.append defaultAttrs [ E.onClick msg ]
+        List.append defaultAttrs [ HE.onClick msg ]
       else
         defaultAttrs
   in
-    div attrs
-      [ div [ class "switch__container" ]
-          [ h3 [ class "switch__title" ] [ text title ]
-          , div [ class "switch__button-container" ]
-              [ div [ class "switch__button" ] [] ]
+    H.div attrs
+      [ H.div [ HA.class "switch__container" ]
+          [ H.h3 [ HA.class "switch__title" ] [ H.text title ]
+          , H.div [ HA.class "switch__button-container" ]
+              [ H.div [ HA.class "switch__button" ] [] ]
           ]
       ]
 
 
-viewDisplay : String -> Html msg
+viewDisplay : String -> H.Html msg
 viewDisplay value =
-  div [ class "display" ]
+  H.div [ HA.class "display" ]
     [ if String.isEmpty value then
-        text (String.fromChar nonBreakingSpace)
+        H.text (String.fromChar nonBreakingSpace)
       else
-        text value
+        H.text value
     ]
 
 
-viewVolume : Bool -> Int -> Html Msg
+viewVolume : Bool -> Int -> H.Html Msg
 viewVolume isEnabled level =
-  div [ class "slider" ]
-    [ input
-        [ A.max "100"
-        , A.min "0"
-        , A.step "1"
-        , A.type_ "range"
-        , A.value (String.fromInt level)
-        , A.disabled (not isEnabled)
-        , E.onInput ChangedVolume
+  H.div [ HA.class "slider" ]
+    [ H.input
+        [ HA.max "100"
+        , HA.min "0"
+        , HA.step "1"
+        , HA.type_ "range"
+        , HA.value (String.fromInt level)
+        , HA.disabled (not isEnabled)
+        , HE.onInput ChangedVolume
         ]
         []
     ]
