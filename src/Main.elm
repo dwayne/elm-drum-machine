@@ -230,7 +230,9 @@ viewDrumPad isEnabled activeKey index drumPad =
       "c" ++ (String.fromInt col)
 
     src =
-      "assets/audio/" ++ drumPad.id ++ ".mp3"
+      -- TODO: We need to pass in the ROOT, via flags, so we can build an
+      -- absolute path to the audio file.
+      "audio/" ++ drumPad.id ++ ".mp3"
   in
     div
       [ class "drum-pad"

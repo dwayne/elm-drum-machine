@@ -6,18 +6,18 @@
 
     <title>Drum Machine</title>
 
-    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="{{ROOT}}/index.css">
   </head>
   <body>
     <div id="app"></div>
-    <script src="app.js"></script>
+    <script src="{{ROOT}}/app.js"></script>
     <script>
       const app = Elm.Main.init({
         node: document.getElementById("app")
       });
 
       app.ports.playAudio.subscribe(function (args) {
-        const audio = document.getElementById(args.id)
+        const audio = document.getElementById(args.id);
 
         audio.volume = args.volume;
         audio.currentTime = 0;
