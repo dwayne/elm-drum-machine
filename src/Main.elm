@@ -12,7 +12,7 @@ import Process
 import Task
 
 
-main : Program () Model Msg
+main : Program String Model Msg
 main =
   Browser.element
     { init = init
@@ -26,7 +26,8 @@ main =
 
 
 type alias Model =
-  { power : Bool
+  { root : String
+  , power : Bool
   , bank : Bool
   , display : String
   , volume : Int
@@ -42,17 +43,17 @@ type alias DrumPad =
   }
 
 
-init : () -> (Model, Cmd msg)
-init =
-  always
-    ( { power = True
-      , bank = False
-      , display = ""
-      , volume = 30
-      , activeKey = Nothing
-      }
-    , Cmd.none
-    )
+init : String -> (Model, Cmd msg)
+init root =
+  ( { root = root
+    , power = True
+    , bank = False
+    , display = ""
+    , volume = 30
+    , activeKey = Nothing
+    }
+  , Cmd.none
+  )
 
 
 -- UPDATE
@@ -194,11 +195,11 @@ keyDecoder =
 
 
 view : Model -> H.Html Msg
-view { power, bank, display, volume, activeKey } =
+view { root, power, bank, display, volume, activeKey } =
   H.div [ HA.class "drum-machine" ]
     [ H.div [ HA.class "flex" ]
         [ H.div [ HA.class "mr-40" ]
-            [ viewDrumPads power activeKey (selectKit bank) ]
+            [ viewDrumPads root power activeKey (selectKit bank) ]
         , H.div [ HA.class "controls" ]
             [ viewSwitch True "Power" power ToggledPower
             , viewDisplay display
@@ -209,16 +210,16 @@ view { power, bank, display, volume, activeKey } =
     ]
 
 
-viewDrumPads : Bool -> Maybe Char -> List DrumPad -> H.Html Msg
-viewDrumPads isEnabled activeKey drumPads =
+viewDrumPads : String -> Bool -> Maybe Char -> List DrumPad -> H.Html Msg
+viewDrumPads root isEnabled activeKey drumPads =
   H.div [ HA.class "drum-pads" ]
     [ H.div [ HA.class "drum-pads__container" ]
-        (List.indexedMap (viewDrumPad isEnabled activeKey) drumPads)
+        (List.indexedMap (viewDrumPad root isEnabled activeKey) drumPads)
     ]
 
 
-viewDrumPad : Bool -> Maybe Char -> Int -> DrumPad -> H.Html Msg
-viewDrumPad isEnabled activeKey index drumPad =
+viewDrumPad : String -> Bool -> Maybe Char -> Int -> DrumPad -> H.Html Msg
+viewDrumPad root isEnabled activeKey index drumPad =
   let
     (row, col) =
       toPosition index
@@ -230,9 +231,7 @@ viewDrumPad isEnabled activeKey index drumPad =
       "c" ++ (String.fromInt col)
 
     src =
-      -- TODO: We need to pass in the ROOT, via flags, so we can build an
-      -- absolute path to the audio file.
-      "audio/" ++ drumPad.id ++ ".mp3"
+      root ++ "/audio/" ++ drumPad.id ++ ".mp3"
   in
     H.div
       [ HA.class "drum-pad"
