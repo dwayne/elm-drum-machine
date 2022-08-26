@@ -1,0 +1,36 @@
+.key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100px;
+  height: 80px;
+
+  border: 0;
+  border-radius: 5px;
+  padding: 0;
+
+  outline: 0;
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: inherit;
+
+  box-shadow: black 3px 3px 5px;
+  background-color: gray;
+  color: black;
+}
+
+.key:focus,
+.key:hover {
+  opacity: 0.9;
+}
+
+.key:enabled:active,
+.key--is-active:enabled {
+  transform: translate(3px, 3px);
+
+  background-color: orange;
+  box-shadow: none;
+}

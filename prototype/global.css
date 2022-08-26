@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css?family=Russo+One');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Russo One';
+}
