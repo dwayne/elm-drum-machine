@@ -1,0 +1,30 @@
+.slider {
+  width: 100%;
+  cursor: pointer;
+  background-color: white;
+}
+
+
+.slider::-moz-range-thumb {
+  width: 8px;
+  height: 25px;
+
+  border: 0;
+  border-radius: 0;
+
+  background-color: blue;
+}
+
+
+.slider::-moz-range-track {
+  height: 5px;
+
+  background-color: #424242;
+}
+
+
+.slider:disabled {
+  cursor: default;
+  background-color: white;
+  opacity: 0.8;
+}
