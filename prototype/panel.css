@@ -1,3 +1,16 @@
+:root {
+  --panel-gap: 10px;
+
+  --panel-spot-width: var(--key-width);
+  --panel-spot-height: var(--key-height);
+  --panel-spot-offset-x: calc(var(--panel-spot-width) + var(--panel-gap));
+  --panel-spot-offset-y: calc(var(--panel-spot-height) + var(--panel-gap));
+
+  --panel-width: calc(var(--panel-spot-width) + 2 * var(--panel-spot-offset-x) + var(--key-offset));
+  --panel-height: calc(var(--panel-spot-height) + 2 * var(--panel-spot-offset-y) + var(--key-offset));
+}
+
+
 .panel {
   width: var(--panel-width);
   height: var(--panel-height);
@@ -6,33 +19,41 @@
   /* background-color: pink; */
 }
 
+
 .panel__container {
   position: relative;
 }
+
 
 .panel__spot {
   position: absolute;
 }
 
+
 .r1 {
   top: 0;
 }
+
 
 .r2 {
   top: var(--panel-spot-offset-y);
 }
 
+
 .r3 {
   top: calc(2 * var(--panel-spot-offset-y));
 }
+
 
 .c1 {
   left: 0;
 }
 
+
 .c2 {
   left: var(--panel-spot-offset-x);
 }
+
 
 .c3 {
   left: calc(2 * var(--panel-spot-offset-x));
