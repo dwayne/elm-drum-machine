@@ -43,6 +43,11 @@
 }
 
 
+.switch:disabled {
+  cursor: default;
+}
+
+
 .switch:disabled::before {
   opacity: 0.8;
 }
