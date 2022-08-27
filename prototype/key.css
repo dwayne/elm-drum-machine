@@ -22,15 +22,22 @@
   color: black;
 }
 
+
 .key:focus,
-.key:hover {
+.key:enabled:hover {
   opacity: 0.9;
 }
+
 
 .key:enabled:active,
 .key--is-active:enabled {
   transform: translate(3px, 3px);
 
   background-color: orange;
+  box-shadow: none;
+}
+
+
+.key:disabled {
   box-shadow: none;
 }
