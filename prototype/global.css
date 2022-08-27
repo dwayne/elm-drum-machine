@@ -1,5 +1,21 @@
 @import url('https://fonts.googleapis.com/css?family=Russo+One');
 
+:root {
+  --key-width: 100px;
+  --key-height: 80px;
+  --key-offset: 3px;
+
+  --panel-gap: 10px;
+
+  --panel-spot-width: var(--key-width);
+  --panel-spot-height: var(--key-height);
+  --panel-spot-offset-x: calc(var(--panel-spot-width) + var(--panel-gap));
+  --panel-spot-offset-y: calc(var(--panel-spot-height) + var(--panel-gap));
+
+  --panel-width: calc(var(--panel-spot-width) + 2 * var(--panel-spot-offset-x) + var(--key-offset));
+  --panel-height: calc(var(--panel-spot-height) + 2 * var(--panel-spot-offset-y) + var(--key-offset));
+}
+
 * {
   box-sizing: border-box;
 }

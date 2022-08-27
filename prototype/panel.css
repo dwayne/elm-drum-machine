@@ -1,0 +1,39 @@
+.panel {
+  width: var(--panel-width);
+  height: var(--panel-height);
+
+  /* Useful for debugging purposes */
+  /* background-color: pink; */
+}
+
+.panel__container {
+  position: relative;
+}
+
+.panel__spot {
+  position: absolute;
+}
+
+.r1 {
+  top: 0;
+}
+
+.r2 {
+  top: var(--panel-spot-offset-y);
+}
+
+.r3 {
+  top: calc(2 * var(--panel-spot-offset-y));
+}
+
+.c1 {
+  left: 0;
+}
+
+.c2 {
+  left: var(--panel-spot-offset-x);
+}
+
+.c3 {
+  left: calc(2 * var(--panel-spot-offset-x));
+}
