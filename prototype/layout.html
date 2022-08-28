@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Layout</title>
+    <link rel="stylesheet" href="/global.css">
+    <link rel="stylesheet" href="/layout.css">
+    <style>
+      body {
+        height: 100vh;
+        margin: 0;
+      }
+      .box {
+        width: 383px;
+        height: 611px;
+        background: #aaa;
+      }
+      @media screen and (min-width: 750px) {
+        .box {
+          width: 731px;
+          height: 323px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <div class="layout__wrapper">
+        <div class="box"></div>
+      </div>
+    </div>
+  </body>
+</html>
