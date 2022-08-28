@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Drum Machine</title>
+
+    <link rel="stylesheet" href="/global.css">
+    <link rel="stylesheet" href="/key.css">
+    <link rel="stylesheet" href="/panel.css">
+    <link rel="stylesheet" href="/switch.css">
+    <link rel="stylesheet" href="/labelled-switch.css">
+    <link rel="stylesheet" href="/slider.css">
+    <link rel="stylesheet" href="/display.css">
+    <link rel="stylesheet" href="/drum-machine.css">
+    <link rel="stylesheet" href="/layout.css">
+  </head>
+  <body>
+    <div class="layout">
+      <div class="layout__wrapper">
+        <div class="drum-machine">
+          <div class="drum-machine__panel">
+            <div class="panel">
+              <div class="panel__container">
+                <div class="panel__spot r1 c1">
+                  <button class="key">Q</button>
+                </div>
+                <div class="panel__spot r1 c2">
+                  <button class="key">W</button>
+                </div>
+                <div class="panel__spot r1 c3">
+                  <button class="key">E</button>
+                </div>
+                <div class="panel__spot r2 c1">
+                  <button class="key">A</button>
+                </div>
+                <div class="panel__spot r2 c2">
+                  <button class="key">S</button>
+                </div>
+                <div class="panel__spot r2 c3">
+                  <button class="key">D</button>
+                </div>
+                <div class="panel__spot r3 c1">
+                  <button class="key">Z</button>
+                </div>
+                <div class="panel__spot r3 c2">
+                  <button class="key">X</button>
+                </div>
+                <div class="panel__spot r3 c3">
+                  <button class="key">C</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="drum-machine__controls">
+            <div class="drum-machine__power">
+              <label class="labelled-switch">
+                <span class="labelled-switch__title">Power</span>
+                <input type="checkbox" class="switch" checked>
+              </label>
+            </div>
+
+            <div class="drum-machine__display">
+              <div class="display"></div>
+            </div>
+
+            <div class="drum-machine__volume">
+              <input type="range" min="0" max="100" step="1" class="slider">
+            </div>
+
+            <div class="drum-machine__bank">
+              <label class="labelled-switch">
+                <span class="labelled-switch__title">Bank</span>
+                <input type="checkbox" class="switch">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

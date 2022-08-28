@@ -46,5 +46,6 @@
 
 
 .key:disabled {
+  cursor: default;
   box-shadow: none;
 }
