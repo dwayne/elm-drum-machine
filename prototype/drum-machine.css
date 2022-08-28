@@ -15,12 +15,35 @@
 
 
 .drum-machine__controls {
+  width: var(--panel-width);
+  height: var(--panel-height);
+
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   align-items: center;
 }
 
 
 .drum-machine__display {
-  /* width: 80%; */
+  align-self: stretch;
+  padding-left: 10%;
+  padding-right: 10%;
+}
+
+
+.drum-machine__volume {
+  align-self: stretch;
+}
+
+
+@media screen and (min-width: 750px) {
+  .drum-machine {
+    flex-direction: row;
+  }
+
+  .drum-machine__panel {
+    margin-bottom: 0;
+    margin-right: 25px;
+  }
 }

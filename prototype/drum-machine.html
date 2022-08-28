@@ -18,7 +18,7 @@
   <body>
     <h1>Drum Machine</h1>
 
-    <h2>Enabled</h2>
+    <h2>Power: On</h2>
 
     <div class="drum-machine">
       <div class="drum-machine__panel">
@@ -58,7 +58,7 @@
         <div class="drum-machine__power">
           <label class="labelled-switch">
             <span class="labelled-switch__title">Power</span>
-            <input type="checkbox" class="switch">
+            <input type="checkbox" class="switch" checked>
           </label>
         </div>
 
@@ -74,6 +74,71 @@
           <label class="labelled-switch">
             <span class="labelled-switch__title">Bank</span>
             <input type="checkbox" class="switch">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <h2>Power: Off</h2>
+
+    <div class="drum-machine">
+      <div class="drum-machine__panel">
+        <div class="panel">
+          <div class="panel__container">
+            <div class="panel">
+              <div class="panel__container">
+                <div class="panel__spot r1 c1">
+                  <button class="key" disabled>Q</button>
+                </div>
+                <div class="panel__spot r1 c2">
+                  <button class="key" disabled>W</button>
+                </div>
+                <div class="panel__spot r1 c3">
+                  <button class="key" disabled>E</button>
+                </div>
+                <div class="panel__spot r2 c1">
+                  <button class="key" disabled>A</button>
+                </div>
+                <div class="panel__spot r2 c2">
+                  <button class="key" disabled>S</button>
+                </div>
+                <div class="panel__spot r2 c3">
+                  <button class="key" disabled>D</button>
+                </div>
+                <div class="panel__spot r3 c1">
+                  <button class="key" disabled>Z</button>
+                </div>
+                <div class="panel__spot r3 c2">
+                  <button class="key" disabled>X</button>
+                </div>
+                <div class="panel__spot r3 c3">
+                  <button class="key" disabled>C</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="drum-machine__controls">
+        <div class="drum-machine__power">
+          <label class="labelled-switch">
+            <span class="labelled-switch__title">Power</span>
+            <input type="checkbox" class="switch">
+          </label>
+        </div>
+
+        <div class="drum-machine__display">
+          <div class="display"></div>
+        </div>
+
+        <div class="drum-machine__volume">
+          <input type="range" min="0" max="100" step="1" class="slider" disabled>
+        </div>
+
+        <div class="drum-machine__bank">
+          <label class="labelled-switch">
+            <span class="labelled-switch__title">Bank</span>
+            <input type="checkbox" class="switch" checked disabled>
           </label>
         </div>
       </div>
