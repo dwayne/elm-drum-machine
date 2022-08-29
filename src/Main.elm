@@ -79,7 +79,11 @@ view model =
         kit =
           Bank.kit bank
       in
-      viewPanel False kit
+      H.div []
+        [ viewPanel False kit
+        , H.p [] [ viewPower True ]
+        , H.p [] [ viewBank False False ]
+        ]
 
     Nothing ->
       viewError "Sorry, we're unable to start the application since it's not properly configured."
@@ -114,6 +118,35 @@ viewKey isDisabled key =
     , HA.disabled isDisabled
     ]
     [ H.text <| Key.toString key ]
+
+
+viewPower : Bool -> H.Html msg
+viewPower isOn =
+  viewLabelledSwitch False isOn "Power"
+
+
+viewBank : Bool -> Bool -> H.Html msg
+viewBank isDisabled isOn =
+  viewLabelledSwitch isDisabled isOn "Bank"
+
+
+viewLabelledSwitch : Bool -> Bool -> String -> H.Html msg
+viewLabelledSwitch isDisabled isOn title =
+  H.label [ HA.class "labelled-switch" ]
+    [ H.span [ HA.class "labelled-switch__title" ] [ H.text title ]
+    , viewSwitch isDisabled isOn
+    ]
+
+
+viewSwitch : Bool -> Bool -> H.Html msg
+viewSwitch isDisabled isOn =
+  H.input
+    [ HA.type_ "checkbox"
+    , HA.class "switch"
+    , HA.disabled isDisabled
+    , HA.checked isOn
+    ]
+    []
 
 
 viewError : String -> H.Html msg
