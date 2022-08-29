@@ -1,57 +1,80 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 
 import Browser
-import Browser.Events as BE
 import Html as H
-import Html.Attributes as HA
-import Html.Events as HE
-import Json.Encode as JE
 import Json.Decode as JD
-import Process
-import Task
+import Json.Encode as JE
 
 
-main : Program String Model Msg
+main : Program Flags Model Msg
 main =
   Browser.element
     { init = init
     , view = view
     , update = update
-    , subscriptions = subscriptions
+    , subscriptions = always Sub.none
     }
 
 
 -- MODEL
 
 
+type alias Flags =
+  JE.Value
+
+
 type alias Model =
-  { root : String
-  , power : Bool
-  , bank : Bool
-  , display : String
-  , volume : Int
-  , activeKey : Maybe Char
+  Result String State
+
+
+type alias State =
+  { bank : Bank
   }
 
 
-type alias DrumPad =
+type Bank
+  = Bank1 Kit Kit
+  | Bank2 Kit Kit
+
+
+type alias Kit =
   { name : String
-  , id : String
-  , keyCode : Int
-  , keyTrigger : Char
+  , keyConfigs : List KeyConfig
   }
 
 
-init : String -> (Model, Cmd msg)
-init root =
-  ( { root = root
-    , power = True
-    , bank = False
-    , display = ""
-    , volume = 30
-    , activeKey = Nothing
-    }
+type alias KeyConfig =
+  { id : String
+  , name : String
+  , key : Key
+  }
+
+
+type Key
+  = Q
+  | W
+  | E
+  | A
+  | S
+  | D
+  | Z
+  | X
+  | C
+
+
+init : Flags -> (Model, Cmd msg)
+init value =
+  let
+    model =
+      case JD.decodeValue bankDecoder value of
+        Ok bank ->
+          Ok { bank = bank }
+
+        Err _ ->
+          Err "Sorry, we're unable to start the application since it's not properly configured."
+  in
+  ( model
   , Cmd.none
   )
 
@@ -60,388 +83,107 @@ init root =
 
 
 type Msg
-  = Clicked DrumPad
-  | KeyDown Char
-  | KeyUp Char
-  | ToggledPower
-  | ToggledBank
-  | ChangedVolume String
-  | VolumeAlarm Int
+  = NoOp
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    Clicked { name, id } ->
-      ( { model | display = name }
-      , play id model.volume
-      )
-
-    KeyDown key ->
-      ( { model | activeKey = Just key }
-      , Cmd.none
-      )
-
-    KeyUp key ->
-      case findDrumPad key (selectKit model.bank) of
-        Just { name, id } ->
-          ( { model | display = name, activeKey = Nothing }
-          , play id model.volume
-          )
-
-        Nothing ->
-          ( model
-          , Cmd.none
-          )
-
-    ToggledPower ->
-      ( { model | power = not model.power, display = "" }
-      , Cmd.none
-      )
-
-    ToggledBank ->
-      let
-        newBank =
-          not model.bank
-      in
-        ( { model | bank = newBank, display = kitName newBank }
-        , Cmd.none
-        )
-
-    ChangedVolume newVolumeAsString ->
-      case String.toInt newVolumeAsString of
-        Just newVolume ->
-          ( { model
-            | volume = newVolume
-            , display = "Volume " ++ newVolumeAsString
-            }
-          , alarm 500 (VolumeAlarm newVolume)
-          )
-
-        Nothing ->
-          ( model
-          , Cmd.none
-          )
-
-    VolumeAlarm volume ->
-      ( let
-          clearDisplay =
-            volume == model.volume && String.startsWith "Volume" model.display
-        in
-          if clearDisplay then
-            { model | display = "" }
-          else
-            model
+    NoOp ->
+      ( model
       , Cmd.none
       )
 
 
-play : String -> Int -> Cmd msg
-play id volume =
-  let
-    args =
-      JE.object
-        [ ("id", JE.string id)
-        , ("volume", JE.float (toFloat volume / 100))
-        ]
-  in
-    playAudio args
+-- DECODER
 
 
--- COMMANDS
+bankDecoder : JD.Decoder Bank
+bankDecoder =
+  JD.map2 Bank1
+    (JD.field "kit1" kitDecoder)
+    (JD.field "kit2" kitDecoder)
 
 
-port playAudio : JE.Value -> Cmd msg
+kitDecoder : JD.Decoder Kit
+kitDecoder =
+  JD.map2 Kit
+    (JD.field "name" JD.string)
+    (JD.field "keyConfigs" <| JD.list keyConfigDecoder)
 
 
-alarm : Float -> msg -> Cmd msg
-alarm time msg =
-  Process.sleep time
-    |> Task.perform (always msg)
+keyConfigDecoder : JD.Decoder KeyConfig
+keyConfigDecoder =
+  JD.map3 KeyConfig
+    (JD.field "id" JD.string)
+    (JD.field "name" JD.string)
+    (JD.field "key" keyDecoder)
 
 
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions { power } =
-  if power then
-    Sub.batch
-      [ BE.onKeyDown (JD.map KeyDown keyDecoder)
-      , BE.onKeyUp (JD.map KeyUp keyDecoder)
-      ]
-  else
-    Sub.none
-
-
--- DECODERS
-
-
-keyDecoder : JD.Decoder Char
+keyDecoder : JD.Decoder Key
 keyDecoder =
-  JD.field "key" JD.string
+  JD.string
     |> JD.andThen
-      (\key ->
-        case String.uncons key of
-          Just (c, "") ->
-            JD.succeed (Char.toUpper c)
+        (\s ->
+            case s of
+              "Q" ->
+                JD.succeed Q
 
-          _ ->
-            JD.fail ("Ignored: " ++ key)
-      )
+              "W" ->
+                JD.succeed W
+
+              "E" ->
+                JD.succeed E
+
+              "A" ->
+                JD.succeed A
+
+              "S" ->
+                JD.succeed S
+
+              "D" ->
+                JD.succeed D
+
+              "Z" ->
+                JD.succeed Z
+
+              "X" ->
+                JD.succeed X
+
+              "C" ->
+                JD.succeed C
+
+              _ ->
+                JD.fail <| "expected either Q, W, E, A, S, D, Z, X, or C: " ++ s
+        )
 
 
 -- VIEW
 
 
-view : Model -> H.Html Msg
-view { root, power, bank, display, volume, activeKey } =
-  H.div [ HA.class "drum-machine" ]
-    [ H.div [ HA.class "flex" ]
-        [ H.div [ HA.class "mr-40" ]
-            [ viewDrumPads root power activeKey (selectKit bank) ]
-        , H.div [ HA.class "controls" ]
-            [ viewSwitch True "Power" power ToggledPower
-            , viewDisplay display
-            , viewVolume power volume
-            , viewSwitch power "Bank" bank ToggledBank
-            ]
-        ]
-    ]
+view : Model -> H.Html msg
+view model =
+  case model of
+    Ok { bank } ->
+      case bank of
+        Bank1 kit _ ->
+          H.text kit.name
 
+        Bank2 _ kit ->
+          H.text kit.name
 
-viewDrumPads : String -> Bool -> Maybe Char -> List DrumPad -> H.Html Msg
-viewDrumPads root isEnabled activeKey drumPads =
-  H.div [ HA.class "drum-pads" ]
-    [ H.div [ HA.class "drum-pads__container" ]
-        (List.indexedMap (viewDrumPad root isEnabled activeKey) drumPads)
-    ]
-
-
-viewDrumPad : String -> Bool -> Maybe Char -> Int -> DrumPad -> H.Html Msg
-viewDrumPad root isEnabled activeKey index drumPad =
-  let
-    (row, col) =
-      toPosition index
-
-    rowClass =
-      "r" ++ (String.fromInt row)
-
-    colClass =
-      "c" ++ (String.fromInt col)
-
-    src =
-      root ++ "/audio/" ++ drumPad.id ++ ".mp3"
-  in
-    H.div
-      [ HA.class "drum-pad"
-      , HA.class rowClass
-      , HA.class colClass
-      ]
-      [ H.audio [ HA.id drumPad.id, HA.src src ] []
-      , H.button
-          [ HA.class "drum-pad__button"
-          , HA.classList [ ("is-active", activeKey == Just drumPad.keyTrigger) ]
-          , HA.disabled (not isEnabled)
-          , HE.onClick (Clicked drumPad)
-          ]
-          [ H.text (String.fromChar drumPad.keyTrigger)
-          ]
-      ]
-
-
-viewSwitch : Bool -> String -> Bool -> msg -> H.Html msg
-viewSwitch isEnabled title isOn msg =
-  let
-    stateClass =
-      if isOn then
-        "is-on"
-      else
-        "is-off"
-
-    defaultAttrs =
-      [ HA.class ("switch " ++ stateClass) ]
-
-    attrs =
-      if isEnabled then
-        List.append defaultAttrs [ HE.onClick msg ]
-      else
-        defaultAttrs
-  in
-    H.div attrs
-      [ H.div [ HA.class "switch__container" ]
-          [ H.h3 [ HA.class "switch__title" ] [ H.text title ]
-          , H.div [ HA.class "switch__button-container" ]
-              [ H.div [ HA.class "switch__button" ] [] ]
-          ]
-      ]
-
-
-viewDisplay : String -> H.Html msg
-viewDisplay value =
-  H.div [ HA.class "display" ]
-    [ if String.isEmpty value then
-        H.text (String.fromChar nonBreakingSpace)
-      else
-        H.text value
-    ]
-
-
-viewVolume : Bool -> Int -> H.Html Msg
-viewVolume isEnabled level =
-  H.div [ HA.class "slider" ]
-    [ H.input
-        [ HA.max "100"
-        , HA.min "0"
-        , HA.step "1"
-        , HA.type_ "range"
-        , HA.value (String.fromInt level)
-        , HA.disabled (not isEnabled)
-        , HE.onInput ChangedVolume
-        ]
-        []
-    ]
+    Err err ->
+      H.text err
 
 
 -- HELPERS
 
 
-nonBreakingSpace : Char
-nonBreakingSpace = '\u{00A0}'
+switchBank : Bank -> Bank
+switchBank bank =
+  case bank of
+    Bank1 kit1 kit2 ->
+      Bank2 kit1 kit2
 
-
-findDrumPad : Char -> List DrumPad -> Maybe DrumPad
-findDrumPad key drumPads =
-  case drumPads of
-    [] ->
-      Nothing
-
-    (drumPad::rest) ->
-      if key == drumPad.keyTrigger then
-        Just drumPad
-      else
-        findDrumPad key rest
-
-
-selectKit : Bool -> List DrumPad
-selectKit isSmoothPiano =
-  if isSmoothPiano then
-    smoothPianoKit
-  else
-    heaterKit
-
-
-kitName : Bool -> String
-kitName isSmoothPiano =
-  if isSmoothPiano then
-    "Smooth Piano Kit"
-  else
-    "Heater Kit"
-
-
-toPosition : Int -> (Int, Int)
-toPosition index =
-  (index // 3 + 1, modBy 3 index + 1)
-
-
--- DATA
-
-
-heaterKit : List DrumPad
-heaterKit =
-  [ { name = "Heater 1"
-    , id = "heater-1"
-    , keyCode = 81
-    , keyTrigger = 'Q'
-    }
-  , { name = "Heater 2"
-    , id = "heater-2"
-    , keyCode = 87
-    , keyTrigger = 'W'
-    }
-  , { name = "Heater 3"
-    , id = "heater-3"
-    , keyCode = 69
-    , keyTrigger = 'E'
-    }
-  , { name = "Heater 4"
-    , id = "heater-4"
-    , keyCode = 65
-    , keyTrigger = 'A'
-    }
-  , { name = "Clap"
-    , id = "clap"
-    , keyCode = 83
-    , keyTrigger = 'S'
-    }
-  , { name = "Open HH"
-    , id = "open-hh-1"
-    , keyCode = 68
-    , keyTrigger = 'D'
-    }
-  , { name = "Kick n' Hat"
-    , id = "kick-n-hat"
-    , keyCode = 90
-    , keyTrigger = 'Z'
-    }
-  , { name = "Kick"
-    , id = "kick"
-    , keyCode = 88
-    , keyTrigger = 'X'
-    }
-  , { name = "Closed HH"
-    , id = "closed-hh-1"
-    , keyCode = 67
-    , keyTrigger = 'C'
-    }
-  ]
-
-
-smoothPianoKit : List DrumPad
-smoothPianoKit =
-  [ { name = "Chord 1"
-    , id = "chord-1"
-    , keyCode = 81
-    , keyTrigger = 'Q'
-    }
-  , { name = "Chord 2"
-    , id = "chord-2"
-    , keyCode = 87
-    , keyTrigger = 'W'
-    }
-  , { name = "Chord 3"
-    , id = "chord-3"
-    , keyCode = 69
-    , keyTrigger = 'E'
-    }
-  , { name = "Shaker"
-    , id = "shaker"
-    , keyCode = 65
-    , keyTrigger = 'A'
-    }
-  , { name = "Open HH"
-    , id = "open-hh-2"
-    , keyCode = 83
-    , keyTrigger = 'S'
-    }
-  , { name = "Closed HH"
-    , id = "closed-hh-2"
-    , keyCode = 68
-    , keyTrigger = 'D'
-    }
-  , { name = "Punchy Kick"
-    , id = "punchy-kick"
-    , keyCode = 90
-    , keyTrigger = 'Z'
-    }
-  , { name = "Side Stick"
-    , id = "side-stick"
-    , keyCode = 88
-    , keyTrigger = 'X'
-    }
-  , { name = "Snare"
-    , id = "snare"
-    , keyCode = 67
-    , keyTrigger = 'C'
-    }
-  ]
+    Bank2 kit1 kit2 ->
+      Bank1 kit1 kit2
