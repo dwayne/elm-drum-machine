@@ -4,6 +4,7 @@ module Main exposing (main)
 import Bank exposing (Bank)
 import Browser
 import Html as H
+import Html.Attributes as HA
 import Json.Decode as JD
 import Json.Encode as JE
 
@@ -80,4 +81,11 @@ view model =
       H.text kit.name
 
     Nothing ->
-      H.text "Sorry, we're unable to start the application since it's not properly configured."
+      viewError "Sorry, we're unable to start the application since it's not properly configured."
+
+
+viewError : String -> H.Html msg
+viewError text =
+  H.div
+    [ HA.class "error" ]
+    [ H.text text ]
