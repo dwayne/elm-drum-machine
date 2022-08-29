@@ -1,12 +1,13 @@
 module Main exposing (main)
 
 
-import Bank exposing (Bank)
+import Bank exposing (Bank, KeyConfig, Kit)
 import Browser
 import Html as H
 import Html.Attributes as HA
 import Json.Decode as JD
 import Json.Encode as JE
+import Key exposing (Key)
 
 
 main : Program Flags Model Msg
@@ -78,10 +79,32 @@ view model =
         kit =
           Bank.kit bank
       in
-      H.text kit.name
+      viewPanel False kit
 
     Nothing ->
       viewError "Sorry, we're unable to start the application since it's not properly configured."
+
+
+viewPanel : Bool -> Kit -> H.Html msg
+viewPanel isDisabled kit =
+  H.div [ HA.class "panel" ]
+    [ H.div [ HA.class "panel__container" ] <|
+        List.indexedMap (viewPanelSpot isDisabled) kit.keyConfigs
+    ]
+
+
+viewPanelSpot : Bool -> Int -> KeyConfig -> H.Html msg
+viewPanelSpot isDisabled index config =
+  let
+    (r, c) =
+      (index // 3 + 1, modBy 3 index + 1)
+  in
+  H.div
+    [ HA.class "panel__spot"
+    , HA.class <| "r" ++ String.fromInt r
+    , HA.class <| "c" ++ String.fromInt c
+    ]
+    [ viewKey isDisabled config.key ]
 
 
 viewKey : Bool -> Key -> H.Html msg
@@ -90,7 +113,7 @@ viewKey isDisabled key =
     [ HA.class "key"
     , HA.disabled isDisabled
     ]
-    [ H.text Key.toString key ]
+    [ H.text <| Key.toString key ]
 
 
 viewError : String -> H.Html msg
