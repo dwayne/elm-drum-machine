@@ -83,7 +83,8 @@ view model =
         [ viewPanel False kit
         , H.p [] [ viewPower True ]
         , H.p [] [ viewDisplay "" ]
-        , H.p [] [ viewDisplay "Volume 100" ]
+        , H.p [] [ viewDisplay "Volume 20" ]
+        , H.p [] [ viewVolume False 20 ]
         , H.p [] [ viewBank False False ]
         ]
 
@@ -155,6 +156,25 @@ viewDisplay : String -> H.Html msg
 viewDisplay text =
   H.div [ HA.class "display" ]
     [ H.text text ]
+
+
+viewVolume : Bool -> Int -> H.Html msg
+viewVolume =
+  viewSlider 0 100 1
+
+
+viewSlider : Int -> Int -> Int -> Bool -> Int -> H.Html msg
+viewSlider min max step isDisabled value =
+  H.input
+    [ HA.type_ "range"
+    , HA.min <| String.fromInt min
+    , HA.max <| String.fromInt max
+    , HA.step <| String.fromInt step
+    , HA.class "slider"
+    , HA.disabled isDisabled
+    , HA.value <| String.fromInt value
+    ]
+    []
 
 
 viewError : String -> H.Html msg
