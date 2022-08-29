@@ -82,6 +82,8 @@ view model =
       H.div []
         [ viewPanel False kit
         , H.p [] [ viewPower True ]
+        , H.p [] [ viewDisplay "" ]
+        , H.p [] [ viewDisplay "Volume 100" ]
         , H.p [] [ viewBank False False ]
         ]
 
@@ -147,6 +149,12 @@ viewSwitch isDisabled isOn =
     , HA.checked isOn
     ]
     []
+
+
+viewDisplay : String -> H.Html msg
+viewDisplay text =
+  H.div [ HA.class "display" ]
+    [ H.text text ]
 
 
 viewError : String -> H.Html msg
