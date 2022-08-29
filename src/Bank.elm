@@ -1,6 +1,6 @@
 module Bank exposing
   ( Bank
-  , Kit, KeyConfig, Key(..)
+  , Kit, KeyConfig
   , decoder
   , isBank2
   , kit
@@ -9,6 +9,7 @@ module Bank exposing
 
 
 import Json.Decode as JD
+import Key exposing (Key)
 
 
 type Bank
@@ -27,18 +28,6 @@ type alias KeyConfig =
   , name : String
   , key : Key
   }
-
-
-type Key
-  = Q
-  | W
-  | E
-  | A
-  | S
-  | D
-  | Z
-  | X
-  | C
 
 
 decoder : JD.Decoder Bank
@@ -60,45 +49,7 @@ keyConfigDecoder =
   JD.map3 KeyConfig
     (JD.field "id" JD.string)
     (JD.field "name" JD.string)
-    (JD.field "key" keyDecoder)
-
-
-keyDecoder : JD.Decoder Key
-keyDecoder =
-  JD.string
-    |> JD.andThen
-        (\s ->
-            case s of
-              "Q" ->
-                JD.succeed Q
-
-              "W" ->
-                JD.succeed W
-
-              "E" ->
-                JD.succeed E
-
-              "A" ->
-                JD.succeed A
-
-              "S" ->
-                JD.succeed S
-
-              "D" ->
-                JD.succeed D
-
-              "Z" ->
-                JD.succeed Z
-
-              "X" ->
-                JD.succeed X
-
-              "C" ->
-                JD.succeed C
-
-              _ ->
-                JD.fail <| "expected either Q, W, E, A, S, D, Z, X, or C: " ++ s
-        )
+    (JD.field "key" Key.decoder)
 
 
 isBank2 : Bank -> Bool

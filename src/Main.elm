@@ -84,6 +84,15 @@ view model =
       viewError "Sorry, we're unable to start the application since it's not properly configured."
 
 
+viewKey : Bool -> Key -> H.Html msg
+viewKey isDisabled key =
+  H.button
+    [ HA.class "key"
+    , HA.disabled isDisabled
+    ]
+    [ H.text Key.toString key ]
+
+
 viewError : String -> H.Html msg
 viewError text =
   H.div
