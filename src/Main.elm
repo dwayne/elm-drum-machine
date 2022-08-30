@@ -5,6 +5,7 @@ import Bank exposing (Bank, KeyConfig, Kit)
 import Browser
 import Html as H
 import Html.Attributes as HA
+import Html.Events as HE
 import Json.Decode as JD
 import Json.Encode as JE
 import Key exposing (Key)
@@ -64,14 +65,40 @@ init value =
 
 
 type Msg
-  = NoOp
+  = ToggledPower Bool
+  | ToggledBank Bool
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  case msg of
-    NoOp ->
+  case model of
+    Just state ->
+      updateState msg state
+        |> Tuple.mapFirst Just
+
+    Nothing ->
       ( model
+      , Cmd.none
+      )
+
+
+updateState : Msg -> State -> (State, Cmd Msg)
+updateState msg state =
+  case msg of
+    ToggledPower isOn ->
+      ( { state | isOn = isOn }
+      , Cmd.none
+      )
+
+    ToggledBank isBank2 ->
+      let
+        bank =
+          if Bank.isBank2 state.bank == isBank2 then
+            state.bank
+          else
+            Bank.switch state.bank
+      in
+      ( { state | bank = bank }
       , Cmd.none
       )
 
@@ -79,7 +106,7 @@ update msg model =
 -- VIEW
 
 
-view : Model -> H.Html msg
+view : Model -> H.Html Msg
 view model =
   case model of
     Just { bank, isOn, text, volume } ->
@@ -97,7 +124,7 @@ viewLayout html =
     ]
 
 
-viewDrumMachine : Bank -> Bool -> String -> Int -> H.Html msg
+viewDrumMachine : Bank -> Bool -> String -> Int -> H.Html Msg
 viewDrumMachine bank isOn text volume =
   let
     isDisabled =
@@ -150,31 +177,32 @@ viewKey isDisabled key =
     [ H.text <| Key.toString key ]
 
 
-viewPower : Bool -> H.Html msg
+viewPower : Bool -> H.Html Msg
 viewPower isOn =
-  viewLabelledSwitch False isOn "Power"
+  viewLabelledSwitch False ToggledPower isOn "Power"
 
 
-viewBank : Bool -> Bool -> H.Html msg
+viewBank : Bool -> Bool -> H.Html Msg
 viewBank isDisabled isOn =
-  viewLabelledSwitch isDisabled isOn "Bank"
+  viewLabelledSwitch isDisabled ToggledBank isOn "Bank"
 
 
-viewLabelledSwitch : Bool -> Bool -> String -> H.Html msg
-viewLabelledSwitch isDisabled isOn title =
+viewLabelledSwitch : Bool -> (Bool -> msg) -> Bool -> String -> H.Html msg
+viewLabelledSwitch isDisabled onToggle isOn title =
   H.label [ HA.class "labelled-switch" ]
     [ H.span [ HA.class "labelled-switch__title" ] [ H.text title ]
-    , viewSwitch isDisabled isOn
+    , viewSwitch isDisabled onToggle isOn
     ]
 
 
-viewSwitch : Bool -> Bool -> H.Html msg
-viewSwitch isDisabled isOn =
+viewSwitch : Bool -> (Bool -> msg) -> Bool -> H.Html msg
+viewSwitch isDisabled onToggle isOn =
   H.input
     [ HA.type_ "checkbox"
     , HA.class "switch"
     , HA.disabled isDisabled
     , HA.checked isOn
+    , HE.onCheck onToggle
     ]
     []
 
