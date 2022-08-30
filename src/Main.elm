@@ -9,6 +9,8 @@ import Html.Events as HE
 import Json.Decode as JD
 import Json.Encode as JE
 import Key exposing (Key)
+import Process
+import Task
 
 
 main : Program Flags Model Msg
@@ -67,6 +69,7 @@ init value =
 type Msg
   = ToggledPower Bool
   | ToggledBank Bool
+  | DisplayTimeUp
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -86,9 +89,15 @@ updateState : Msg -> State -> (State, Cmd Msg)
 updateState msg state =
   case msg of
     ToggledPower isOn ->
-      ( { state | isOn = isOn }
-      , Cmd.none
-      )
+      let
+        text =
+          if isOn then
+            "On"
+          else
+            "Off"
+      in
+      { state | isOn = isOn }
+        |> setDisplay text
 
     ToggledBank isBank2 ->
       let
@@ -97,10 +106,30 @@ updateState msg state =
             state.bank
           else
             Bank.switch state.bank
+
+        kit =
+          Bank.kit bank
       in
-      ( { state | bank = bank }
+      { state | bank = bank }
+        |> setDisplay kit.name
+
+    DisplayTimeUp ->
+      ( { state | text = "" }
       , Cmd.none
       )
+
+
+setDisplay : String -> State -> (State, Cmd Msg)
+setDisplay text state =
+  ( { state | text = text }
+  , delay 500 DisplayTimeUp
+  )
+
+
+delay : Float -> msg -> Cmd msg
+delay time onExpired =
+  Process.sleep time
+    |> Task.perform (always onExpired)
 
 
 -- VIEW
