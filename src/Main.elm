@@ -75,21 +75,32 @@ view : Model -> H.Html msg
 view model =
   case model of
     Just { bank } ->
-      let
-        kit =
-          Bank.kit bank
-      in
-      H.div []
-        [ viewPanel False kit
-        , H.p [] [ viewPower True ]
-        , H.p [] [ viewDisplay "" ]
-        , H.p [] [ viewDisplay "Volume 20" ]
-        , H.p [] [ viewVolume False 20 ]
-        , H.p [] [ viewBank False False ]
-        ]
+      viewDrumMachine bank True "Volume 20" 20
 
     Nothing ->
       viewError "Sorry, we're unable to start the application since it's not properly configured."
+
+
+viewDrumMachine : Bank -> Bool -> String -> Int -> H.Html msg
+viewDrumMachine bank isOn text volume =
+  let
+    isDisabled =
+      not isOn
+  in
+  H.div [ HA.class "drum-machine" ]
+    [ H.div [ HA.class "drum-machine__panel" ]
+        [ viewPanel isDisabled <| Bank.kit bank ]
+    , H.div [ HA.class "drum-machine__controls" ]
+        [ H.div [ HA.class "drum-machine__power" ]
+            [ viewPower isOn ]
+        , H.div [ HA.class "drum-machine__display" ]
+            [ viewDisplay text ]
+        , H.div [ HA.class "drum-machine__volume" ]
+            [ viewVolume isDisabled volume ]
+        , H.div [ HA.class "drum-machine__bank" ]
+            [ viewBank isDisabled <| Bank.isBank2 bank ]
+        ]
+    ]
 
 
 viewPanel : Bool -> Kit -> H.Html msg
