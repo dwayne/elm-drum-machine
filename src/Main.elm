@@ -33,6 +33,9 @@ type alias Model =
 
 type alias State =
   { bank : Bank
+  , isOn : Bool
+  , text : String
+  , volume : Int
   }
 
 
@@ -42,7 +45,12 @@ init value =
     model =
       case JD.decodeValue Bank.decoder value of
         Ok bank ->
-          Just { bank = bank }
+          Just
+            { bank = bank
+            , isOn = False
+            , text = ""
+            , volume = 50
+            }
 
         Err _ ->
           Nothing
@@ -74,8 +82,8 @@ update msg model =
 view : Model -> H.Html msg
 view model =
   case model of
-    Just { bank } ->
-      viewLayout <| viewDrumMachine bank True "Volume 20" 20
+    Just { bank, isOn, text, volume } ->
+      viewLayout <| viewDrumMachine bank isOn text volume
 
     Nothing ->
       viewError "Sorry, we're unable to start the application since it's not properly configured."
