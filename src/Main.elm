@@ -75,10 +75,18 @@ view : Model -> H.Html msg
 view model =
   case model of
     Just { bank } ->
-      viewDrumMachine bank True "Volume 20" 20
+      viewLayout <| viewDrumMachine bank True "Volume 20" 20
 
     Nothing ->
       viewError "Sorry, we're unable to start the application since it's not properly configured."
+
+
+viewLayout : H.Html msg -> H.Html msg
+viewLayout html =
+  H.div [ HA.class "layout" ]
+    [ H.div [ HA.class "layout__wrapper" ]
+        [ html ]
+    ]
 
 
 viewDrumMachine : Bank -> Bool -> String -> Int -> H.Html msg
