@@ -69,6 +69,7 @@ init value =
 type Msg
   = ToggledPower Bool
   | ToggledBank Bool
+  | ChangedVolume String
   | DisplayTimeUp
 
 
@@ -112,6 +113,22 @@ updateState msg state =
       in
       { state | bank = bank }
         |> setDisplay kit.name
+
+    ChangedVolume volumeAsString ->
+      case String.toInt volumeAsString of
+        Just volumeAsInt ->
+          let
+            volume =
+              clamp 0 100 volumeAsInt
+          in
+          { state | volume = volume }
+            |> setDisplay ("Volume " ++ String.fromInt volume)
+
+        Nothing ->
+          ( state
+          , Cmd.none
+          )
+
 
     DisplayTimeUp ->
       ( { state | text = "" }
@@ -242,13 +259,13 @@ viewDisplay text =
     [ H.text text ]
 
 
-viewVolume : Bool -> Int -> H.Html msg
+viewVolume : Bool -> Int -> H.Html Msg
 viewVolume =
-  viewSlider 0 100 1
+  viewSlider 0 100 1 ChangedVolume
 
 
-viewSlider : Int -> Int -> Int -> Bool -> Int -> H.Html msg
-viewSlider min max step isDisabled value =
+viewSlider : Int -> Int -> Int -> (String -> msg) -> Bool -> Int -> H.Html msg
+viewSlider min max step onChange isDisabled value =
   H.input
     [ HA.type_ "range"
     , HA.min <| String.fromInt min
@@ -257,6 +274,7 @@ viewSlider min max step isDisabled value =
     , HA.class "slider"
     , HA.disabled isDisabled
     , HA.value <| String.fromInt value
+    , HE.onInput onChange
     ]
     []
 
