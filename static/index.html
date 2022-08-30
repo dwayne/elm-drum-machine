@@ -62,13 +62,16 @@
         }
       });
 
-      // app.ports.play.subscribe(function (args) {
-      //   const audio = document.getElementById(args.id);
-      //
-      //   audio.volume = args.volume;
-      //   audio.currentTime = 0;
-      //   audio.play();
-      // });
+      app.ports.send.subscribe(function (message) {
+        if (message.tag === 'play') {
+          const args = message.value;
+          const audio = document.getElementById(args.id);
+
+          audio.volume = args.volume;
+          audio.currentTime = 0;
+          audio.play();
+        }
+      });
     </script>
   </body>
 </html>

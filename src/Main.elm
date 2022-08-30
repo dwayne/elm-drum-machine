@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 
 import Bank exposing (Bank, KeyConfig, Kit)
@@ -70,6 +70,7 @@ type Msg
   = ToggledPower Bool
   | ToggledBank Bool
   | ChangedVolume String
+  | ClickedKey KeyConfig
   | DisplayTimeUp
 
 
@@ -129,6 +130,15 @@ updateState msg state =
           , Cmd.none
           )
 
+    ClickedKey { id, name } ->
+      setDisplay name state
+        |> Tuple.mapSecond
+            (\cmd ->
+                Cmd.batch
+                  [ cmd
+                  , play id state.volume
+                  ]
+            )
 
     DisplayTimeUp ->
       ( { state | text = "" }
@@ -147,6 +157,29 @@ delay : Float -> msg -> Cmd msg
 delay time onExpired =
   Process.sleep time
     |> Task.perform (always onExpired)
+
+
+play : String -> Int -> Cmd Msg
+play id volume =
+  let
+    message =
+      JE.object
+        [ ( "tag", JE.string "play" )
+        , ( "value"
+          , JE.object
+              [ ("id", JE.string id)
+              , ("volume", JE.float (toFloat volume / 100))
+              ]
+          )
+        ]
+  in
+  send message
+
+
+-- PORT
+
+
+port send : JE.Value -> Cmd msg
 
 
 -- VIEW
@@ -178,7 +211,7 @@ viewDrumMachine bank isOn text volume =
   in
   H.div [ HA.class "drum-machine" ]
     [ H.div [ HA.class "drum-machine__panel" ]
-        [ viewPanel isDisabled <| Bank.kit bank ]
+        [ viewPanel isDisabled ClickedKey <| Bank.kit bank ]
     , H.div [ HA.class "drum-machine__controls" ]
         [ H.div [ HA.class "drum-machine__power" ]
             [ viewPower isOn ]
@@ -192,16 +225,16 @@ viewDrumMachine bank isOn text volume =
     ]
 
 
-viewPanel : Bool -> Kit -> H.Html msg
-viewPanel isDisabled kit =
+viewPanel : Bool -> (KeyConfig -> msg) -> Kit -> H.Html msg
+viewPanel isDisabled onClick kit =
   H.div [ HA.class "panel" ]
     [ H.div [ HA.class "panel__container" ] <|
-        List.indexedMap (viewPanelSpot isDisabled) kit.keyConfigs
+        List.indexedMap (viewPanelSpot isDisabled onClick) kit.keyConfigs
     ]
 
 
-viewPanelSpot : Bool -> Int -> KeyConfig -> H.Html msg
-viewPanelSpot isDisabled index config =
+viewPanelSpot : Bool -> (KeyConfig -> msg) -> Int -> KeyConfig -> H.Html msg
+viewPanelSpot isDisabled onClick index keyConfig =
   let
     (r, c) =
       (index // 3 + 1, modBy 3 index + 1)
@@ -211,14 +244,15 @@ viewPanelSpot isDisabled index config =
     , HA.class <| "r" ++ String.fromInt r
     , HA.class <| "c" ++ String.fromInt c
     ]
-    [ viewKey isDisabled config.key ]
+    [ viewKey isDisabled (onClick keyConfig) keyConfig.key ]
 
 
-viewKey : Bool -> Key -> H.Html msg
-viewKey isDisabled key =
+viewKey : Bool -> msg -> Key -> H.Html msg
+viewKey isDisabled onClick key =
   H.button
     [ HA.class "key"
     , HA.disabled isDisabled
+    , HE.onClick onClick
     ]
     [ H.text <| Key.toString key ]
 
