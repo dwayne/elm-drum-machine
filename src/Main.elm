@@ -130,14 +130,19 @@ updateOn msg state =
             )
 
     KeyDown { id, name, key } ->
-      setDisplay name { state | activeKey = Just key }
-        |> Tuple.mapSecond
-            (\cmd ->
-                Cmd.batch
-                  [ cmd
-                  , play id state.volume
-                  ]
-            )
+      if state.activeKey == Nothing then
+        setDisplay name { state | activeKey = Just key }
+          |> Tuple.mapSecond
+              (\cmd ->
+                  Cmd.batch
+                    [ cmd
+                    , play id state.volume
+                    ]
+              )
+      else
+        ( state
+        , Cmd.none
+        )
 
     KeyUp key ->
       ( if Just key == state.activeKey then
