@@ -160,6 +160,11 @@ updateOff msg state =
       { state | isOn = True }
         |> setDisplay "On"
 
+    DisplayTimeUp ->
+      ( { state | text = "" }
+      , Cmd.none
+      )
+
     _ ->
       ( state
       , Cmd.none
