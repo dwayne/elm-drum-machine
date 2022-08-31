@@ -12,6 +12,7 @@ import Json.Encode as JE
 import Key exposing (Key)
 import Process
 import Task
+import Volume exposing (Volume)
 
 
 main : Program Flags Model Msg
@@ -39,7 +40,7 @@ type alias State =
   { bank : Bank
   , isOn : Bool
   , text : String
-  , volume : Int
+  , volume : Volume
   , activeKey : Maybe Key
   }
 
@@ -54,7 +55,7 @@ init value =
             { bank = bank
             , isOn = False
             , text = ""
-            , volume = 50
+            , volume = Volume.fromInt 50
             , activeKey = Nothing
             }
 
@@ -72,7 +73,7 @@ init value =
 type Msg
   = ToggledPower
   | ToggledBank
-  | ChangedVolume String
+  | ChangedVolume Volume
   | MouseDownOnKey KeyConfig
   | KeyDown KeyConfig
   | KeyUp Key
@@ -114,20 +115,9 @@ updateOn msg state =
       { state | bank = bank }
         |> setDisplay kit.name
 
-    ChangedVolume volumeAsString ->
-      case String.toInt volumeAsString of
-        Just volumeAsInt ->
-          let
-            volume =
-              clamp 0 100 volumeAsInt
-          in
-          { state | volume = volume }
-            |> setDisplay ("Volume " ++ String.fromInt volume)
-
-        Nothing ->
-          ( state
-          , Cmd.none
-          )
+    ChangedVolume volume ->
+      { state | volume = volume }
+        |> setDisplay (Volume.toString volume)
 
     MouseDownOnKey { id, name } ->
       setDisplay name state
@@ -189,7 +179,7 @@ delay time onExpired =
     |> Task.perform (always onExpired)
 
 
-play : String -> Int -> Cmd Msg
+play : String -> Volume -> Cmd Msg
 play id volume =
   let
     message =
@@ -198,7 +188,7 @@ play id volume =
         , ( "value"
           , JE.object
               [ ("id", JE.string id)
-              , ("volume", JE.float (toFloat volume / 100))
+              , ("volume", Volume.toValue volume)
               ]
           )
         ]
@@ -250,6 +240,7 @@ keyConfigDecoder bank =
               JD.fail ""
         )
 
+
 keyDecoder : JD.Decoder Key
 keyDecoder =
   JD.field "key" JD.string
@@ -300,7 +291,7 @@ viewDrumMachine { bank, isOn, text, volume, activeKey } =
         , H.div [ HA.class "drum-machine__display" ]
             [ viewDisplay text ]
         , H.div [ HA.class "drum-machine__volume" ]
-            [ viewVolume isDisabled volume ]
+            [ Volume.view ChangedVolume isDisabled volume ]
         , H.div [ HA.class "drum-machine__bank" ]
             [ viewBank isDisabled <| Bank.isBank2 bank ]
         ]
@@ -374,26 +365,6 @@ viewDisplay : String -> H.Html msg
 viewDisplay text =
   H.div [ HA.class "display" ]
     [ H.text text ]
-
-
-viewVolume : Bool -> Int -> H.Html Msg
-viewVolume =
-  viewSlider 0 100 1 ChangedVolume
-
-
-viewSlider : Int -> Int -> Int -> (String -> msg) -> Bool -> Int -> H.Html msg
-viewSlider min max step onChange isDisabled value =
-  H.input
-    [ HA.type_ "range"
-    , HA.min <| String.fromInt min
-    , HA.max <| String.fromInt max
-    , HA.step <| String.fromInt step
-    , HA.class "slider"
-    , HA.disabled isDisabled
-    , HA.value <| String.fromInt value
-    , HE.onInput onChange
-    ]
-    []
 
 
 viewError : String -> H.Html msg
