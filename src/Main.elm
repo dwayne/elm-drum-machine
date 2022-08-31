@@ -154,11 +154,7 @@ updateOn msg state =
       )
 
     DisplayTimeUp id ->
-      ( (\_ -> { state | text = "" })
-          |> Timer.apply id state.timer
-          |> Maybe.withDefault state
-      , Cmd.none
-      )
+      clearDisplay id state
 
 
 updateOff : Msg -> State -> (State, Cmd Msg)
@@ -169,11 +165,7 @@ updateOff msg state =
         |> setDisplay "On"
 
     DisplayTimeUp id ->
-      ( (\_ -> { state | text = "" })
-          |> Timer.apply id state.timer
-          |> Maybe.withDefault state
-      , Cmd.none
-      )
+      clearDisplay id state
 
     _ ->
       ( state
@@ -189,6 +181,15 @@ setDisplay text state =
   in
   ( { state | text = text, timer = timer }
   , cmd
+  )
+
+
+clearDisplay : Timer.Id -> State -> (State, Cmd Msg)
+clearDisplay id state =
+  ( (\_ -> { state | text = "" })
+      |> Timer.apply id state.timer
+      |> Maybe.withDefault state
+  , Cmd.none
   )
 
 
