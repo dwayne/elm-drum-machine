@@ -1,6 +1,6 @@
 # Drum Machine
 
-![A screenshot of the Drum Machine](/drum-machine.png)
+![A screenshot of the Drum Machine](/screenshot.png)
 
 This Elm app is based on [freeCodeCamp](https://www.freecodecamp.com/)'s
 [Build a Drum Machine](https://learn.freecodecamp.org/front-end-libraries/front-end-libraries-projects/build-a-drum-machine/)
