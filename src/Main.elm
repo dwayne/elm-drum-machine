@@ -274,8 +274,8 @@ keyDecoder =
 view : Model -> H.Html Msg
 view model =
   case model of
-    Just state ->
-      viewLayout <| viewDrumMachine state
+    Just { bank, isOn, text, volume, activeKey } ->
+      viewLayout <| viewDrumMachine bank isOn text volume activeKey
 
     Nothing ->
       viewError "Sorry, we're unable to start the application since it's not properly configured."
@@ -289,8 +289,8 @@ viewLayout html =
     ]
 
 
-viewDrumMachine : State -> H.Html Msg
-viewDrumMachine { bank, isOn, text, volume, activeKey } =
+viewDrumMachine : Bank -> Bool -> String -> Volume -> Maybe Key -> H.Html Msg
+viewDrumMachine bank isOn text volume activeKey =
   let
     isDisabled =
       not isOn
