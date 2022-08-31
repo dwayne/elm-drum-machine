@@ -70,7 +70,7 @@ type Msg
   = ToggledPower Bool
   | ToggledBank Bool
   | ChangedVolume String
-  | ClickedKey KeyConfig
+  | MouseDownOnKey KeyConfig
   | DisplayTimeUp
 
 
@@ -130,7 +130,7 @@ updateState msg state =
           , Cmd.none
           )
 
-    ClickedKey { id, name } ->
+    MouseDownOnKey { id, name } ->
       setDisplay name state
         |> Tuple.mapSecond
             (\cmd ->
@@ -211,7 +211,7 @@ viewDrumMachine bank isOn text volume =
   in
   H.div [ HA.class "drum-machine" ]
     [ H.div [ HA.class "drum-machine__panel" ]
-        [ viewPanel isDisabled ClickedKey <| Bank.kit bank ]
+        [ viewPanel isDisabled MouseDownOnKey <| Bank.kit bank ]
     , H.div [ HA.class "drum-machine__controls" ]
         [ H.div [ HA.class "drum-machine__power" ]
             [ viewPower isOn ]
@@ -226,15 +226,15 @@ viewDrumMachine bank isOn text volume =
 
 
 viewPanel : Bool -> (KeyConfig -> msg) -> Kit -> H.Html msg
-viewPanel isDisabled onClick kit =
+viewPanel isDisabled onMouseDown kit =
   H.div [ HA.class "panel" ]
     [ H.div [ HA.class "panel__container" ] <|
-        List.indexedMap (viewPanelSpot isDisabled onClick) kit.keyConfigs
+        List.indexedMap (viewPanelSpot isDisabled onMouseDown) kit.keyConfigs
     ]
 
 
 viewPanelSpot : Bool -> (KeyConfig -> msg) -> Int -> KeyConfig -> H.Html msg
-viewPanelSpot isDisabled onClick index keyConfig =
+viewPanelSpot isDisabled onMouseDown index keyConfig =
   let
     (r, c) =
       (index // 3 + 1, modBy 3 index + 1)
@@ -244,15 +244,15 @@ viewPanelSpot isDisabled onClick index keyConfig =
     , HA.class <| "r" ++ String.fromInt r
     , HA.class <| "c" ++ String.fromInt c
     ]
-    [ viewKey isDisabled (onClick keyConfig) keyConfig.key ]
+    [ viewKey isDisabled (onMouseDown keyConfig) keyConfig.key ]
 
 
 viewKey : Bool -> msg -> Key -> H.Html msg
-viewKey isDisabled onClick key =
+viewKey isDisabled onMouseDown key =
   H.button
     [ HA.class "key"
     , HA.disabled isDisabled
-    , HE.onClick onClick
+    , HE.onMouseDown onMouseDown
     ]
     [ H.text <| Key.toString key ]
 
