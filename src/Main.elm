@@ -338,15 +338,15 @@ viewKey isDisabled activeKey onMouseDown key =
 
 viewPower : Bool -> H.Html Msg
 viewPower isOn =
-  viewLabelledSwitch False (always ToggledPower) isOn "Power"
+  viewLabelledSwitch False ToggledPower isOn "Power"
 
 
 viewBank : Bool -> Bool -> H.Html Msg
 viewBank isDisabled isOn =
-  viewLabelledSwitch isDisabled (always ToggledBank) isOn "Bank"
+  viewLabelledSwitch isDisabled ToggledBank isOn "Bank"
 
 
-viewLabelledSwitch : Bool -> (Bool -> msg) -> Bool -> String -> H.Html msg
+viewLabelledSwitch : Bool -> msg -> Bool -> String -> H.Html msg
 viewLabelledSwitch isDisabled onToggle isOn title =
   H.label [ HA.class "labelled-switch" ]
     [ H.span [ HA.class "labelled-switch__title" ] [ H.text title ]
@@ -354,14 +354,14 @@ viewLabelledSwitch isDisabled onToggle isOn title =
     ]
 
 
-viewSwitch : Bool -> (Bool -> msg) -> Bool -> H.Html msg
+viewSwitch : Bool -> msg -> Bool -> H.Html msg
 viewSwitch isDisabled onToggle isOn =
   H.input
     [ HA.type_ "checkbox"
     , HA.class "switch"
     , HA.disabled isDisabled
     , HA.checked isOn
-    , HE.onCheck onToggle
+    , HE.onCheck (always onToggle)
     ]
     []
 
