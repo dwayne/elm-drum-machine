@@ -5,6 +5,7 @@ module Bank exposing
   , isBank2
   , kit
   , switch
+  , findKeyConfig
   )
 
 
@@ -80,3 +81,25 @@ switch bank =
 
     Bank2 kit1 kit2 ->
       Bank1 kit1 kit2
+
+
+findKeyConfig : Key -> Bank -> Maybe KeyConfig
+findKeyConfig key bank =
+  let
+    { keyConfigs } =
+      kit bank
+  in
+  findKeyConfigHelper key keyConfigs
+
+
+findKeyConfigHelper : Key -> List KeyConfig -> Maybe KeyConfig
+findKeyConfigHelper key keyConfigs =
+  case keyConfigs of
+    [] ->
+      Nothing
+
+    keyConfig :: restKeyConfigs ->
+      if key == keyConfig.key then
+        Just keyConfig
+      else
+        findKeyConfigHelper key restKeyConfigs

@@ -3,6 +3,7 @@ port module Main exposing (main)
 
 import Bank exposing (Bank, KeyConfig, Kit)
 import Browser
+import Browser.Events as BE
 import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
@@ -19,7 +20,7 @@ main =
     { init = init
     , view = view
     , update = update
-    , subscriptions = always Sub.none
+    , subscriptions = subscriptions
     }
 
 
@@ -71,6 +72,7 @@ type Msg
   | ToggledBank Bool
   | ChangedVolume String
   | MouseDownOnKey KeyConfig
+  | KeyDown KeyConfig
   | DisplayTimeUp
 
 
@@ -140,6 +142,16 @@ updateState msg state =
                   ]
             )
 
+    KeyDown { id, name } ->
+      setDisplay name state
+        |> Tuple.mapSecond
+            (\cmd ->
+                Cmd.batch
+                  [ cmd
+                  , play id state.volume
+                  ]
+            )
+
     DisplayTimeUp ->
       ( { state | text = "" }
       , Cmd.none
@@ -180,6 +192,45 @@ play id volume =
 
 
 port send : JE.Value -> Cmd msg
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  case model of
+    Just { bank, isOn } ->
+      if isOn then
+        BE.onKeyDown <| JD.map KeyDown (keyDecoder bank)
+      else
+        Sub.none
+
+    Nothing ->
+      Sub.none
+
+
+keyDecoder : Bank -> JD.Decoder KeyConfig
+keyDecoder bank =
+  let
+    ignore s =
+      JD.fail <| "ignore: " ++ s
+  in
+  JD.field "key" JD.string
+    |> JD.andThen
+        (\s ->
+          case Key.fromString s of
+            Just key ->
+              case Bank.findKeyConfig key bank of
+                Just keyConfig ->
+                  JD.succeed keyConfig
+
+                Nothing ->
+                  ignore s
+
+            Nothing ->
+              ignore s
+        )
 
 
 -- VIEW

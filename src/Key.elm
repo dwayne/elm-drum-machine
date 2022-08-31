@@ -1,5 +1,6 @@
 module Key exposing
   ( Key(..)
+  , fromString
   , decoder
   , toString
   )
@@ -20,40 +21,50 @@ type Key
   | C
 
 
+fromString : String -> Maybe Key
+fromString s =
+  case String.toUpper s of
+    "Q" ->
+      Just Q
+
+    "W" ->
+      Just W
+
+    "E" ->
+      Just E
+
+    "A" ->
+      Just A
+
+    "S" ->
+      Just S
+
+    "D" ->
+      Just D
+
+    "Z" ->
+      Just Z
+
+    "X" ->
+      Just X
+
+    "C" ->
+      Just C
+
+    _ ->
+      Nothing
+
+
 decoder : JD.Decoder Key
 decoder =
   JD.string
     |> JD.andThen
         (\s ->
-            case s of
-              "Q" ->
-                JD.succeed Q
+            case fromString s of
+              Just key ->
+                JD.succeed key
 
-              "W" ->
-                JD.succeed W
-
-              "E" ->
-                JD.succeed E
-
-              "A" ->
-                JD.succeed A
-
-              "S" ->
-                JD.succeed S
-
-              "D" ->
-                JD.succeed D
-
-              "Z" ->
-                JD.succeed Z
-
-              "X" ->
-                JD.succeed X
-
-              "C" ->
-                JD.succeed C
-
-              _ ->
+              Nothing ->
                 JD.fail <| "expected either Q, W, E, A, S, D, Z, X, or C: " ++ s
         )
 
