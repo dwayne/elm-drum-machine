@@ -40,6 +40,7 @@ type alias State =
   , isOn : Bool
   , text : String
   , volume : Int
+  , activeKey : Maybe Key
   }
 
 
@@ -54,6 +55,7 @@ init value =
             , isOn = False
             , text = ""
             , volume = 50
+            , activeKey = Nothing
             }
 
         Err _ ->
@@ -73,6 +75,7 @@ type Msg
   | ChangedVolume String
   | MouseDownOnKey KeyConfig
   | KeyDown KeyConfig
+  | KeyUp Key
   | DisplayTimeUp
 
 
@@ -142,8 +145,8 @@ updateState msg state =
                   ]
             )
 
-    KeyDown { id, name } ->
-      setDisplay name state
+    KeyDown { id, name, key } ->
+      setDisplay name { state | activeKey = Just key }
         |> Tuple.mapSecond
             (\cmd ->
                 Cmd.batch
@@ -151,6 +154,14 @@ updateState msg state =
                   , play id state.volume
                   ]
             )
+
+    KeyUp key ->
+      ( if Just key == state.activeKey then
+          { state | activeKey = Nothing }
+        else
+          state
+      , Cmd.none
+      )
 
     DisplayTimeUp ->
       ( { state | text = "" }
@@ -202,7 +213,11 @@ subscriptions model =
   case model of
     Just { bank, isOn } ->
       if isOn then
-        BE.onKeyDown <| JD.map KeyDown (keyDecoder bank)
+        Sub.batch
+          [ BE.onKeyDown <| JD.map KeyDown (keyConfigDecoder bank)
+          , BE.onKeyUp <| JD.map KeyUp keyDecoder
+          ]
+
       else
         Sub.none
 
@@ -210,12 +225,8 @@ subscriptions model =
       Sub.none
 
 
-keyDecoder : Bank -> JD.Decoder KeyConfig
-keyDecoder bank =
-  let
-    ignore s =
-      JD.fail <| "ignore: " ++ s
-  in
+keyConfigDecoder : Bank -> JD.Decoder KeyConfig
+keyConfigDecoder bank =
   JD.field "key" JD.string
     |> JD.andThen
         (\s ->
@@ -226,10 +237,23 @@ keyDecoder bank =
                   JD.succeed keyConfig
 
                 Nothing ->
-                  ignore s
+                  JD.fail ""
 
             Nothing ->
-              ignore s
+              JD.fail ""
+        )
+
+keyDecoder : JD.Decoder Key
+keyDecoder =
+  JD.field "key" JD.string
+    |> JD.andThen
+        (\s ->
+            case Key.fromString s of
+              Just key ->
+                JD.succeed key
+
+              Nothing ->
+                JD.fail ""
         )
 
 
@@ -239,8 +263,8 @@ keyDecoder bank =
 view : Model -> H.Html Msg
 view model =
   case model of
-    Just { bank, isOn, text, volume } ->
-      viewLayout <| viewDrumMachine bank isOn text volume
+    Just state ->
+      viewLayout <| viewDrumMachine state
 
     Nothing ->
       viewError "Sorry, we're unable to start the application since it's not properly configured."
@@ -254,15 +278,15 @@ viewLayout html =
     ]
 
 
-viewDrumMachine : Bank -> Bool -> String -> Int -> H.Html Msg
-viewDrumMachine bank isOn text volume =
+viewDrumMachine : State -> H.Html Msg
+viewDrumMachine { bank, isOn, text, volume, activeKey } =
   let
     isDisabled =
       not isOn
   in
   H.div [ HA.class "drum-machine" ]
     [ H.div [ HA.class "drum-machine__panel" ]
-        [ viewPanel isDisabled MouseDownOnKey <| Bank.kit bank ]
+        [ viewPanel isDisabled activeKey MouseDownOnKey <| Bank.kit bank ]
     , H.div [ HA.class "drum-machine__controls" ]
         [ H.div [ HA.class "drum-machine__power" ]
             [ viewPower isOn ]
@@ -276,16 +300,16 @@ viewDrumMachine bank isOn text volume =
     ]
 
 
-viewPanel : Bool -> (KeyConfig -> msg) -> Kit -> H.Html msg
-viewPanel isDisabled onMouseDown kit =
+viewPanel : Bool -> Maybe Key -> (KeyConfig -> msg) -> Kit -> H.Html msg
+viewPanel isDisabled activeKey onMouseDown kit =
   H.div [ HA.class "panel" ]
     [ H.div [ HA.class "panel__container" ] <|
-        List.indexedMap (viewPanelSpot isDisabled onMouseDown) kit.keyConfigs
+        List.indexedMap (viewPanelSpot isDisabled activeKey onMouseDown) kit.keyConfigs
     ]
 
 
-viewPanelSpot : Bool -> (KeyConfig -> msg) -> Int -> KeyConfig -> H.Html msg
-viewPanelSpot isDisabled onMouseDown index keyConfig =
+viewPanelSpot : Bool -> Maybe Key -> (KeyConfig -> msg) -> Int -> KeyConfig -> H.Html msg
+viewPanelSpot isDisabled activeKey onMouseDown index keyConfig =
   let
     (r, c) =
       (index // 3 + 1, modBy 3 index + 1)
@@ -295,13 +319,14 @@ viewPanelSpot isDisabled onMouseDown index keyConfig =
     , HA.class <| "r" ++ String.fromInt r
     , HA.class <| "c" ++ String.fromInt c
     ]
-    [ viewKey isDisabled (onMouseDown keyConfig) keyConfig.key ]
+    [ viewKey isDisabled activeKey (onMouseDown keyConfig) keyConfig.key ]
 
 
-viewKey : Bool -> msg -> Key -> H.Html msg
-viewKey isDisabled onMouseDown key =
+viewKey : Bool -> Maybe Key -> msg -> Key -> H.Html msg
+viewKey isDisabled activeKey onMouseDown key =
   H.button
     [ HA.class "key"
+    , HA.classList [ ("key--is-active", Just key == activeKey) ]
     , HA.disabled isDisabled
     , HE.onMouseDown onMouseDown
     ]
