@@ -70,8 +70,8 @@ init value =
 
 
 type Msg
-  = ToggledPower Bool
-  | ToggledBank Bool
+  = ToggledPower
+  | ToggledBank
   | ChangedVolume String
   | MouseDownOnKey KeyConfig
   | KeyDown KeyConfig
@@ -83,8 +83,12 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case model of
     Just state ->
-      updateState msg state
-        |> Tuple.mapFirst Just
+      if state.isOn then
+        updateOn msg state
+          |> Tuple.mapFirst Just
+      else
+        updateOff msg state
+          |> Tuple.mapFirst Just
 
     Nothing ->
       ( model
@@ -92,27 +96,17 @@ update msg model =
       )
 
 
-updateState : Msg -> State -> (State, Cmd Msg)
-updateState msg state =
+updateOn : Msg -> State -> (State, Cmd Msg)
+updateOn msg state =
   case msg of
-    ToggledPower isOn ->
-      let
-        text =
-          if isOn then
-            "On"
-          else
-            "Off"
-      in
-      { state | isOn = isOn }
-        |> setDisplay text
+    ToggledPower ->
+      { state | isOn = False }
+        |> setDisplay "Off"
 
-    ToggledBank isBank2 ->
+    ToggledBank ->
       let
         bank =
-          if Bank.isBank2 state.bank == isBank2 then
-            state.bank
-          else
-            Bank.switch state.bank
+          Bank.switch state.bank
 
         kit =
           Bank.kit bank
@@ -165,6 +159,19 @@ updateState msg state =
 
     DisplayTimeUp ->
       ( { state | text = "" }
+      , Cmd.none
+      )
+
+
+updateOff : Msg -> State -> (State, Cmd Msg)
+updateOff msg state =
+  case msg of
+    ToggledPower ->
+      { state | isOn = True }
+        |> setDisplay "On"
+
+    _ ->
+      ( state
       , Cmd.none
       )
 
@@ -335,12 +342,12 @@ viewKey isDisabled activeKey onMouseDown key =
 
 viewPower : Bool -> H.Html Msg
 viewPower isOn =
-  viewLabelledSwitch False ToggledPower isOn "Power"
+  viewLabelledSwitch False (always ToggledPower) isOn "Power"
 
 
 viewBank : Bool -> Bool -> H.Html Msg
 viewBank isDisabled isOn =
-  viewLabelledSwitch isDisabled ToggledBank isOn "Bank"
+  viewLabelledSwitch isDisabled (always ToggledBank) isOn "Bank"
 
 
 viewLabelledSwitch : Bool -> (Bool -> msg) -> Bool -> String -> H.Html msg
