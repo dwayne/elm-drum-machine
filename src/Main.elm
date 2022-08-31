@@ -10,8 +10,7 @@ import Html.Events as HE
 import Json.Decode as JD
 import Json.Encode as JE
 import Key exposing (Key)
-import Process
-import Task
+import Timer exposing (Timer)
 import Volume exposing (Volume)
 
 
@@ -42,6 +41,7 @@ type alias State =
   , text : String
   , volume : Volume
   , activeKey : Maybe Key
+  , timer : Timer
   }
 
 
@@ -57,6 +57,7 @@ init value =
             , text = ""
             , volume = Volume.fromInt 50
             , activeKey = Nothing
+            , timer = Timer.new
             }
 
         Err _ ->
@@ -77,7 +78,7 @@ type Msg
   | MouseDownOnKey KeyConfig
   | KeyDown KeyConfig
   | KeyUp Key
-  | DisplayTimeUp
+  | DisplayTimeUp Timer.Id
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -152,8 +153,10 @@ updateOn msg state =
       , Cmd.none
       )
 
-    DisplayTimeUp ->
-      ( { state | text = "" }
+    DisplayTimeUp id ->
+      ( (\_ -> { state | text = "" })
+          |> Timer.apply id state.timer
+          |> Maybe.withDefault state
       , Cmd.none
       )
 
@@ -165,8 +168,10 @@ updateOff msg state =
       { state | isOn = True }
         |> setDisplay "On"
 
-    DisplayTimeUp ->
-      ( { state | text = "" }
+    DisplayTimeUp id ->
+      ( (\_ -> { state | text = "" })
+          |> Timer.apply id state.timer
+          |> Maybe.withDefault state
       , Cmd.none
       )
 
@@ -178,15 +183,13 @@ updateOff msg state =
 
 setDisplay : String -> State -> (State, Cmd Msg)
 setDisplay text state =
-  ( { state | text = text }
-  , delay 500 DisplayTimeUp
+  let
+    (timer, cmd) =
+      Timer.setAlarm 500 DisplayTimeUp state.timer
+  in
+  ( { state | text = text, timer = timer }
+  , cmd
   )
-
-
-delay : Float -> msg -> Cmd msg
-delay time onExpired =
-  Process.sleep time
-    |> Task.perform (always onExpired)
 
 
 play : String -> Volume -> Cmd Msg
