@@ -22,44 +22,52 @@ fromInt n =
   Volume <| clamp 0 100 n
 
 
+fromString : String -> Maybe Volume
+fromString =
+  String.toInt >> Maybe.map fromInt
+
+
 toString : Volume -> String
-toString (Volume volume) =
-  "Volume " ++ String.fromInt volume
+toString (Volume v) =
+  String.fromInt v
 
 
 toValue : Volume -> JE.Value
-toValue (Volume volume) =
-  JE.float (toFloat volume / 100)
+toValue (Volume v) =
+  JE.float (toFloat v / 100)
 
 
 view : (Volume -> msg) -> Bool -> Volume -> H.Html msg
-view onInput isDisabled (Volume volume) =
+view onVolume isDisabled volume =
   H.input
     [ HA.type_ "range"
     , HA.min "0"
     , HA.max "100"
     , HA.step "1"
     , HA.class "slider"
-    , HA.disabled isDisabled
-    , HA.value <| String.fromInt volume
-    , customOnInput onInput
+    , HA.value <| toString volume
+    , if isDisabled then
+        HA.disabled True
+
+      else
+        onVolumeInput onVolume
     ]
     []
 
 
-customOnInput : (Volume -> msg) -> H.Attribute msg
-customOnInput onInput =
+onVolumeInput : (Volume -> msg) -> H.Attribute msg
+onVolumeInput onVolume =
   let
     decoder =
       HE.targetValue
         |> JD.andThen
             (\s ->
-              case String.toInt s of
-                Just n ->
-                  JD.succeed <| onInput <| fromInt n
+              case fromString s of
+                Just volume ->
+                  JD.succeed <| onVolume volume
 
                 Nothing ->
-                  JD.fail ""
+                  JD.fail "ignored"
             )
   in
   HE.on "input" decoder

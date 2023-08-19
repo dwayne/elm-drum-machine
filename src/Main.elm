@@ -118,7 +118,7 @@ updateOn msg state =
 
     ChangedVolume volume ->
       { state | volume = volume }
-        |> setDisplay (Volume.toString volume)
+        |> setDisplay ("Volume " ++ Volume.toString volume)
 
     MouseDownOnKey { id, name } ->
       setDisplay name state
