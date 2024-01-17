@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1" />
+
+    <title>Drum Machine</title>
+
+    <link rel="stylesheet" href="./index.css" />
+  </head>
+  <body class="body">
+    <div id="app"></div>
+    <div id="heater-kit">
+      <audio id="heater-1" data-name="Heater 1" src="./audio/heater-1.mp3"></audio>
+      <audio id="heater-2" data-name="Heater 2" src="./audio/heater-2.mp3"></audio>
+      <audio id="heater-3" data-name="Heater 3" src="./audio/heater-3.mp3"></audio>
+      <audio id="heater-4" data-name="Heater 4" src="./audio/heater-4.mp3"></audio>
+      <audio id="clap" data-name="Clap" src="./audio/clap.mp3"></audio>
+      <audio id="open-hh-1" data-name="Open HH" src="./audio/open-hh-1.mp3"></audio>
+      <audio id="kick-n-hat" data-name="Kick n' Hat" src="./audio/kick-n-hat.mp3"></audio>
+      <audio id="kick" data-name="Kick" src="./audio/kick.mp3"></audio>
+      <audio id="closed-hh-1" data-name="Closed HH" src="./audio/closed-hh-1.mp3"></audio>
+    </div>
+    <div id="smooth-piano-kit">
+      <audio id="chord-1" data-name="Chord 1" src="./audio/chord-1.mp3"></audio>
+      <audio id="chord-2" data-name="Chord 2" src="./audio/chord-2.mp3"></audio>
+      <audio id="chord-3" data-name="Chord 3" src="./audio/chord-3.mp3"></audio>
+      <audio id="shaker" data-name="Shaker" src="./audio/shaker.mp3"></audio>
+      <audio id="open-hh-2" data-name="Open HH" src="./audio/open-hh-2.mp3"></audio>
+      <audio id="closed-hh-2" data-name="Closed HH" src="./audio/closed-hh-2.mp3"></audio>
+      <audio id="punchy-kick" data-name="Punchy Kick" src="./audio/punchy-kick.mp3"></audio>
+      <audio id="side-stick" data-name="Side Stick" src="./audio/side-stick.mp3"></audio>
+      <audio id="snare" data-name="Snare" src="./audio/snare.mp3"></audio>
+    </div>
+    <script src="./app.js"></script>
+    <script>
+      const keys = ['Q', 'W', 'E', 'A', 'S', 'D', 'Z', 'X', 'C'];
+
+      const getKit = (id, name) => {
+        const kit = document.getElementById(id);
+        const audios = Array.from(kit.getElementsByTagName('audio'));
+
+        const keyConfigs = audios.map((audio, index) => {
+          return {
+            id: audio.id,
+            name: audio.dataset.name,
+            key: keys[index]
+          };
+        });
+
+        return {
+          name,
+          keyConfigs
+        };
+      };
+
+      const app = Elm.Main.init({
+        node: document.getElementById('app'),
+        flags: {
+          kit1: getKit('heater-kit', 'Heater Kit'),
+          kit2: getKit('smooth-piano-kit', 'Smooth Piano Kit')
+        }
+      });
+
+      app.ports.send.subscribe(function (message) {
+        if (message.tag === 'play') {
+          setTimeout(() => {
+            const args = message.value;
+            const audio = document.getElementById(args.id);
+
+            audio.volume = args.volume;
+            audio.currentTime = 0;
+            audio.play();
+          }, 0);
+        }
+      });
+    </script>
+  </body>
+</html>

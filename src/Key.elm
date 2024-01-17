@@ -1,100 +1,99 @@
 module Key exposing
-  ( Key(..)
-  , fromString
-  , decoder
-  , toString
-  )
-
+    ( Key(..)
+    , decoder
+    , fromString
+    , toString
+    )
 
 import Json.Decode as JD
 
 
 type Key
-  = Q
-  | W
-  | E
-  | A
-  | S
-  | D
-  | Z
-  | X
-  | C
+    = Q
+    | W
+    | E
+    | A
+    | S
+    | D
+    | Z
+    | X
+    | C
 
 
 fromString : String -> Maybe Key
 fromString s =
-  case String.toUpper s of
-    "Q" ->
-      Just Q
+    case String.toUpper s of
+        "Q" ->
+            Just Q
 
-    "W" ->
-      Just W
+        "W" ->
+            Just W
 
-    "E" ->
-      Just E
+        "E" ->
+            Just E
 
-    "A" ->
-      Just A
+        "A" ->
+            Just A
 
-    "S" ->
-      Just S
+        "S" ->
+            Just S
 
-    "D" ->
-      Just D
+        "D" ->
+            Just D
 
-    "Z" ->
-      Just Z
+        "Z" ->
+            Just Z
 
-    "X" ->
-      Just X
+        "X" ->
+            Just X
 
-    "C" ->
-      Just C
+        "C" ->
+            Just C
 
-    _ ->
-      Nothing
+        _ ->
+            Nothing
 
 
 decoder : JD.Decoder Key
 decoder =
-  JD.string
-    |> JD.andThen
-        (\s ->
-            case fromString s of
-              Just key ->
-                JD.succeed key
+    JD.string
+        |> JD.andThen
+            (\s ->
+                case fromString s of
+                    Just key ->
+                        JD.succeed key
 
-              Nothing ->
-                JD.fail <| "expected either Q, W, E, A, S, D, Z, X, or C: " ++ s
-        )
+                    Nothing ->
+                        JD.fail <| "expected either Q, W, E, A, S, D, Z, X, or C: " ++ s
+            )
 
 
 toString : Key -> String
 toString key =
-  case key of
-    Q ->
-      "Q"
+    case key of
+        Q ->
+            "Q"
 
-    W ->
-      "W"
+        W ->
+            "W"
 
-    E ->
-      "E"
+        E ->
+            "E"
 
-    A ->
-      "A"
+        A ->
+            "A"
 
-    S ->
-      "S"
+        S ->
+            "S"
 
-    D ->
-      "D"
+        D ->
+            "D"
 
-    Z ->
-      "Z"
+        Z ->
+            "Z"
 
-    X ->
-      "X"
+        X ->
+            "X"
 
-    C ->
-      "C"
+        C ->
+            "C"

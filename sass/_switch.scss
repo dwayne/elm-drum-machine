@@ -1,15 +1,3 @@
-:root {
-  --switch-button-width: 23px;
-  --switch-button-height: 19px;
-
-  --switch-padding-x: 4px;
-  --switch-padding-y: 4px;
-
-  --switch-width: calc(2 * (var(--switch-button-width) + var(--switch-padding-x)));
-  --switch-height: calc(2 * (var(--switch-button-height) + var(--switch-padding-y)));
-}
-
-
 .switch {
   appearance: none;
   margin: 0;
@@ -26,6 +14,7 @@
   content: "";
 
   display: block;
+
   width: var(--switch-button-width);
   height: var(--switch-button-height);
 

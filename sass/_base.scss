@@ -1,0 +1,42 @@
+@use "fonts";
+
+//
+// Universal box sizing, see https://css-tricks.com/box-sizing/#aa-universal-box-sizing.
+//
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
+:root {
+  --key-width: 100px;
+  --key-height: 80px;
+  --key-offset: 3px;
+
+  --panel-gap: 10px;
+
+  --panel-spot-width: var(--key-width);
+  --panel-spot-height: var(--key-height);
+  --panel-spot-offset-x: calc(var(--panel-spot-width) + var(--panel-gap));
+  --panel-spot-offset-y: calc(var(--panel-spot-height) + var(--panel-gap));
+
+  --panel-width: calc(var(--panel-spot-width) + 2 * var(--panel-spot-offset-x) + var(--key-offset));
+  --panel-height: calc(var(--panel-spot-height) + 2 * var(--panel-spot-offset-y) + var(--key-offset));
+
+  --switch-button-width: 23px;
+  --switch-button-height: 19px;
+
+  --switch-padding-x: 4px;
+  --switch-padding-y: 4px;
+
+  --switch-width: calc(2 * (var(--switch-button-width) + var(--switch-padding-x)));
+  --switch-height: calc(2 * (var(--switch-button-height) + var(--switch-padding-y)));
+}
+
+html {
+  font-family: fonts.$russoOne;
+  font-size: 100%;
+}
+
+.body {
+  margin: 0;
+}
