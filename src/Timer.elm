@@ -2,7 +2,6 @@ module Timer exposing
     ( Config
     , Msg
     , Timer
-    , cancel
     , config
     , init
     , setTimeout
@@ -55,11 +54,6 @@ setTimeout (Config c) (Timer id) =
         |> sleep c.wait
         |> Cmd.map c.onChange
     )
-
-
-cancel : Timer -> Timer
-cancel (Timer id) =
-    Timer <| id + 1
 
 
 type Msg
