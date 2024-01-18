@@ -1,38 +1,38 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1" />
 
     <title>Drum Machine</title>
 
-    <link rel="stylesheet" href="/elm-drum-machine/index.css">
+    <link rel="stylesheet" href="./index.css" />
   </head>
-  <body>
+  <body class="body">
     <div id="app"></div>
     <div id="heater-kit">
-      <audio id="heater-1" data-name="Heater 1" src="/elm-drum-machine/audio/heater-1.mp3"></audio>
-      <audio id="heater-2" data-name="Heater 2" src="/elm-drum-machine/audio/heater-2.mp3"></audio>
-      <audio id="heater-3" data-name="Heater 3" src="/elm-drum-machine/audio/heater-3.mp3"></audio>
-      <audio id="heater-4" data-name="Heater 4" src="/elm-drum-machine/audio/heater-4.mp3"></audio>
-      <audio id="clap" data-name="Clap" src="/elm-drum-machine/audio/clap.mp3"></audio>
-      <audio id="open-hh-1" data-name="Open HH" src="/elm-drum-machine/audio/open-hh-1.mp3"></audio>
-      <audio id="kick-n-hat" data-name="Kick n' Hat" src="/elm-drum-machine/audio/kick-n-hat.mp3"></audio>
-      <audio id="kick" data-name="Kick" src="/elm-drum-machine/audio/kick.mp3"></audio>
-      <audio id="closed-hh-1" data-name="Closed HH" src="/elm-drum-machine/audio/closed-hh-1.mp3"></audio>
+      <audio id="heater-1" data-name="Heater 1" src="./audio/heater-1.mp3"></audio>
+      <audio id="heater-2" data-name="Heater 2" src="./audio/heater-2.mp3"></audio>
+      <audio id="heater-3" data-name="Heater 3" src="./audio/heater-3.mp3"></audio>
+      <audio id="heater-4" data-name="Heater 4" src="./audio/heater-4.mp3"></audio>
+      <audio id="clap" data-name="Clap" src="./audio/clap.mp3"></audio>
+      <audio id="open-hh-1" data-name="Open HH" src="./audio/open-hh-1.mp3"></audio>
+      <audio id="kick-n-hat" data-name="Kick n' Hat" src="./audio/kick-n-hat.mp3"></audio>
+      <audio id="kick" data-name="Kick" src="./audio/kick.mp3"></audio>
+      <audio id="closed-hh-1" data-name="Closed HH" src="./audio/closed-hh-1.mp3"></audio>
     </div>
     <div id="smooth-piano-kit">
-      <audio id="chord-1" data-name="Chord 1" src="/elm-drum-machine/audio/chord-1.mp3"></audio>
-      <audio id="chord-2" data-name="Chord 2" src="/elm-drum-machine/audio/chord-2.mp3"></audio>
-      <audio id="chord-3" data-name="Chord 3" src="/elm-drum-machine/audio/chord-3.mp3"></audio>
-      <audio id="shaker" data-name="Shaker" src="/elm-drum-machine/audio/shaker.mp3"></audio>
-      <audio id="open-hh-2" data-name="Open HH" src="/elm-drum-machine/audio/open-hh-2.mp3"></audio>
-      <audio id="closed-hh-2" data-name="Closed HH" src="/elm-drum-machine/audio/closed-hh-2.mp3"></audio>
-      <audio id="punchy-kick" data-name="Punchy Kick" src="/elm-drum-machine/audio/punchy-kick.mp3"></audio>
-      <audio id="side-stick" data-name="Side Stick" src="/elm-drum-machine/audio/side-stick.mp3"></audio>
-      <audio id="snare" data-name="Snare" src="/elm-drum-machine/audio/snare.mp3"></audio>
+      <audio id="chord-1" data-name="Chord 1" src="./audio/chord-1.mp3"></audio>
+      <audio id="chord-2" data-name="Chord 2" src="./audio/chord-2.mp3"></audio>
+      <audio id="chord-3" data-name="Chord 3" src="./audio/chord-3.mp3"></audio>
+      <audio id="shaker" data-name="Shaker" src="./audio/shaker.mp3"></audio>
+      <audio id="open-hh-2" data-name="Open HH" src="./audio/open-hh-2.mp3"></audio>
+      <audio id="closed-hh-2" data-name="Closed HH" src="./audio/closed-hh-2.mp3"></audio>
+      <audio id="punchy-kick" data-name="Punchy Kick" src="./audio/punchy-kick.mp3"></audio>
+      <audio id="side-stick" data-name="Side Stick" src="./audio/side-stick.mp3"></audio>
+      <audio id="snare" data-name="Snare" src="./audio/snare.mp3"></audio>
     </div>
-    <script src="/elm-drum-machine/app.js"></script>
+    <script src="./app.js"></script>
     <script>
       const keys = ['Q', 'W', 'E', 'A', 'S', 'D', 'Z', 'X', 'C'];
 
@@ -75,5 +75,12 @@
         }
       });
     </script>
+    <a class="github" href="https://github.com/dwayne/elm-drum-machine" target="_blank">
+      <svg class="octocat" width="80" height="80" viewBox="0 0 250 250">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" class="octocat__arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor"></path>
+      </svg>
+    </a>
   </body>
 </html>
