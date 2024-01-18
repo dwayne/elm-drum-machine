@@ -57,7 +57,7 @@ init value =
                         , text = ""
                         , volume = Volume.fromInt 50
                         , activeKey = Nothing
-                        , timer = Timer.new
+                        , timer = Timer.init
                         }
 
                 Err _ ->
@@ -66,6 +66,15 @@ init value =
     ( model
     , Cmd.none
     )
+
+
+timerConfig : Timer.Config Msg
+timerConfig =
+    Timer.config
+        { wait = 500
+        , onExpire = DisplayTimeUp
+        , onChange = ChangedTimer
+        }
 
 
 
@@ -79,7 +88,8 @@ type Msg
     | MouseDownOnKey KeyConfig
     | KeyDown KeyConfig
     | KeyUp Key
-    | DisplayTimeUp Timer.Id
+    | DisplayTimeUp
+    | ChangedTimer Timer.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -157,8 +167,13 @@ updateOn msg state =
             , Cmd.none
             )
 
-        DisplayTimeUp id ->
-            clearDisplay id state
+        DisplayTimeUp ->
+            clearDisplay state
+
+        ChangedTimer timerMsg ->
+            ( state
+            , Timer.update timerConfig timerMsg state.timer
+            )
 
 
 updateOff : Msg -> State -> ( State, Cmd Msg )
@@ -168,8 +183,8 @@ updateOff msg state =
             { state | isOn = True }
                 |> setDisplay "On"
 
-        DisplayTimeUp id ->
-            clearDisplay id state
+        DisplayTimeUp ->
+            clearDisplay state
 
         _ ->
             ( state
@@ -181,18 +196,16 @@ setDisplay : String -> State -> ( State, Cmd Msg )
 setDisplay text state =
     let
         ( timer, cmd ) =
-            Timer.setAlarm 500 DisplayTimeUp state.timer
+            Timer.setTimeout timerConfig state.timer
     in
     ( { state | text = text, timer = timer }
     , cmd
     )
 
 
-clearDisplay : Timer.Id -> State -> ( State, Cmd Msg )
-clearDisplay id state =
-    ( (\_ -> { state | text = "" })
-        |> Timer.apply id state.timer
-        |> Maybe.withDefault state
+clearDisplay : State -> ( State, Cmd Msg )
+clearDisplay state =
+    ( { state | text = "" }
     , Cmd.none
     )
 

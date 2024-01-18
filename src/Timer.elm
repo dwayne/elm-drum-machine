@@ -1,9 +1,12 @@
 module Timer exposing
-    ( Id
+    ( Config
+    , Msg
     , Timer
-    , apply
-    , new
-    , setAlarm
+    , cancel
+    , config
+    , init
+    , setTimeout
+    , update
     )
 
 import Process
@@ -11,39 +14,74 @@ import Task
 
 
 type Timer
-    = Timer Id
+    = Timer Int
 
 
-type Id
-    = Id Int
+init : Timer
+init =
+    Timer 0
 
 
-new : Timer
-new =
-    Timer <| Id 0
+type Config msg
+    = Config
+        { wait : Int
+        , onExpire : msg
+        , onChange : Msg -> msg
+        }
 
 
-setAlarm : Float -> (Id -> msg) -> Timer -> ( Timer, Cmd msg )
-setAlarm duration onTimeUp (Timer id) =
+config :
+    { wait : Int
+    , onExpire : msg
+    , onChange : Msg -> msg
+    }
+    -> Config msg
+config { wait, onExpire, onChange } =
+    Config
+        { wait = max 0 wait
+        , onExpire = onExpire
+        , onChange = onChange
+        }
+
+
+setTimeout : Config msg -> Timer -> ( Timer, Cmd msg )
+setTimeout (Config c) (Timer id) =
     let
-        nextId =
-            increment id
+        newId =
+            id + 1
     in
-    ( Timer nextId
-    , Process.sleep duration
-        |> Task.perform (always <| onTimeUp nextId)
+    ( Timer newId
+    , Timeout newId
+        |> sleep c.wait
+        |> Cmd.map c.onChange
     )
 
 
-increment : Id -> Id
-increment (Id n) =
-    Id <| n + 1
+cancel : Timer -> Timer
+cancel (Timer id) =
+    Timer <| id + 1
 
 
-apply : Id -> Timer -> (() -> a) -> Maybe a
-apply previousId (Timer latestId) f =
-    if previousId == latestId then
-        Just <| f ()
+type Msg
+    = Timeout Int
+
+
+update : Config msg -> Msg -> Timer -> Cmd msg
+update (Config c) (Timeout incomingId) (Timer id) =
+    if incomingId == id then
+        dispatch c.onExpire
 
     else
-        Nothing
+        Cmd.none
+
+
+sleep : Int -> msg -> Cmd msg
+sleep ms msg =
+    Process.sleep (toFloat ms)
+        |> Task.perform (always msg)
+
+
+dispatch : msg -> Cmd msg
+dispatch msg =
+    Task.succeed msg
+        |> Task.perform (always msg)
