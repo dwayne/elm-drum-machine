@@ -9,6 +9,7 @@ import Html.Events as HE
 import Json.Decode as JD
 import Json.Encode as JE
 import Key exposing (Key)
+import Lib.Json.Decode as JD
 import Timer exposing (Timer)
 import Volume exposing (Volume)
 
@@ -257,35 +258,18 @@ subscriptions model =
 
 keyConfigDecoder : Bank -> JD.Decoder KeyConfig
 keyConfigDecoder bank =
+    let
+        findKeyConfig key =
+            Bank.findKeyConfig key bank
+    in
     JD.field "key" JD.string
-        |> JD.andThen
-            (\s ->
-                case Key.fromString s of
-                    Just key ->
-                        case Bank.findKeyConfig key bank of
-                            Just keyConfig ->
-                                JD.succeed keyConfig
-
-                            Nothing ->
-                                JD.fail ""
-
-                    Nothing ->
-                        JD.fail ""
-            )
+        |> JD.andThen (Key.fromString >> Maybe.andThen findKeyConfig >> JD.fromMaybe)
 
 
 keyDecoder : JD.Decoder Key
 keyDecoder =
     JD.field "key" JD.string
-        |> JD.andThen
-            (\s ->
-                case Key.fromString s of
-                    Just key ->
-                        JD.succeed key
-
-                    Nothing ->
-                        JD.fail ""
-            )
+        |> JD.andThen (Key.fromString >> JD.fromMaybe)
 
 
 

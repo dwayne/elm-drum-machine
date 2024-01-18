@@ -11,6 +11,7 @@ import Html.Attributes as HA
 import Html.Events as HE
 import Json.Decode as JD
 import Json.Encode as JE
+import Lib.Json.Decode as JD
 
 
 type Volume
@@ -57,17 +58,6 @@ view onVolume isDisabled volume =
 
 onVolumeInput : (Volume -> msg) -> H.Attribute msg
 onVolumeInput onVolume =
-    let
-        decoder =
-            HE.targetValue
-                |> JD.andThen
-                    (\s ->
-                        case fromString s of
-                            Just volume ->
-                                JD.succeed <| onVolume volume
-
-                            Nothing ->
-                                JD.fail "ignored"
-                    )
-    in
-    HE.on "input" decoder
+    HE.targetValue
+        |> JD.andThen (fromString >> Maybe.map onVolume >> JD.fromMaybe)
+        |> HE.on "input"
