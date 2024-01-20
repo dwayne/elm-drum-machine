@@ -1,11 +1,13 @@
+@use "colors";
+
 .drum-machine {
-  border: 5px solid orange;
+  border: 5px solid colors.$orange;
   padding: 25px;
 
   display: inline-flex;
   flex-direction: column;
 
-  background-color: #b3b3b3;
+  background-color: colors.$pinkSwan;
 }
 
 

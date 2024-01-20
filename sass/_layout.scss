@@ -1,8 +1,10 @@
+@use "colors";
+
 .layout {
   display: flex;
   height: 100vh;
 
-  background-color: #8d8d8d;
+  background-color: colors.$suvaGrey;
 }
 
 .layout__content {

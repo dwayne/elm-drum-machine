@@ -1,3 +1,5 @@
+@use "colors";
+
 .key {
   display: flex;
   align-items: center;
@@ -17,9 +19,9 @@
   font-family: inherit;
   font-size: inherit;
 
-  box-shadow: black var(--key-offset) var(--key-offset) 5px;
-  background-color: gray;
-  color: black;
+  box-shadow: colors.$black var(--key-offset) var(--key-offset) 5px;
+  background-color: colors.$gray;
+  color: colors.$black;
 }
 
 
@@ -33,7 +35,7 @@
 .key--is-active:enabled {
   transform: translate(var(--key-offset), var(--key-offset));
 
-  background-color: orange;
+  background-color: colors.$orange;
   box-shadow: none;
 }
 

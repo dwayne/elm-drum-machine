@@ -1,10 +1,12 @@
+@use "colors";
+
 .switch {
   appearance: none;
   margin: 0;
 
   width: var(--switch-width);
   padding: var(--switch-padding-y) var(--switch-padding-x);
-  background-color: black;
+  background-color: colors.$black;
 
   cursor: pointer;
 }
@@ -18,14 +20,14 @@
   width: var(--switch-button-width);
   height: var(--switch-button-height);
 
-  background-color: red;
+  background-color: colors.$red;
 
   transition: transform 0.2s ease-out;
 }
 
 
 .switch:checked::before {
-  background-color: blue;
+  background-color: colors.$blue;
 
   transform: translateX(var(--switch-button-width));
   transition: transform 0.2s ease-out;
